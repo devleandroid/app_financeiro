@@ -1,6 +1,36 @@
-# .gitignore
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
 .env
+.venv
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Project specific
+result
+dados_validados.json
+taxas_referencia.json
+@laura
+@laura.pub
+Miniconda*.sh
