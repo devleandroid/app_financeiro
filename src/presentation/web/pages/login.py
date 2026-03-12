@@ -47,7 +47,7 @@ def render():
     
     with tab1:
         with st.container():
-            st.markdown('<div class="login-box">', unsafe_allow_html=True)
+            # st.markdown('<div class="login-box">', unsafe_allow_html=True)
             
             # Email
             email = st.text_input("📧 Email", placeholder="seu@email.com")
@@ -109,7 +109,7 @@ def render():
     
     with tab2:
         with st.container():
-            st.markdown('<div class="login-box">', unsafe_allow_html=True)
+            # st.markdown('<div class="login-box">', unsafe_allow_html=True)
             st.markdown("### 🔒 Área Restrita")
             
             username = st.text_input("👤 Usuário", placeholder="admin")

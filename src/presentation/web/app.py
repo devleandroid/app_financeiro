@@ -13,6 +13,25 @@ st.set_page_config(
 # CSS global mínimo
 st.markdown("""
 <style>
+    /* Garantir que o menu lateral inicie recolhido */
+    section[data-testid="stSidebar"] {
+        width: 0 !important;
+        opacity: 0;
+        transition: width 0.3s ease, opacity 0.3s ease;
+    }
+    
+    /* Quando o usuário passar o mouse, expande suavemente */
+    section[data-testid="stSidebar"]:hover {
+        width: 21rem !important;
+        opacity: 1;
+    }
+    
+    /* Botão de expandir/recolher personalizado */
+    button[kind="header"] {
+        background: transparent !important;
+        border: none !important;
+    }
+
     /* Remover elementos desnecessários */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
