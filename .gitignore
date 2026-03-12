@@ -8,10 +8,13 @@ env/
 venv/
 .env
 .venv
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Database
 *.db
 *.sqlite3
+*.db-journal
 
 # Logs
 logs/
@@ -22,6 +25,7 @@ logs/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
@@ -29,10 +33,32 @@ Thumbs.db
 
 # Project specific
 result
-dados_validados.json
-taxas_referencia.json
-@laura
-@laura.pub
-Miniconda*.sh
-Miniconda3-latest-Linux-x86_64.sh
+nix/result
+*.bak
+*.backup
+*.old
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+
+# Large files - ADICIONADOS
 *.sh
+*.iso
+*.img
+*.bin
+*.tar.gz
+*.zip
+Miniconda*.sh
+Anaconda*.sh
+*.exe
+*.dmg
+
+# Nix build results
+/result
+/nix/result
