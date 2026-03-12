@@ -61,4 +61,4 @@ Anaconda*.sh
 
 # Nix build results
 /result
-/nix/result
+/nix/resultMiniconda*.sh
