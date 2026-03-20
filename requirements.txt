@@ -12,7 +12,7 @@ sqlalchemy==2.0.35
 streamlit==1.36.0
 plotly==5.19.0
 pandas==2.2.0
-numpy==1.26.0
+numpy==2.0.0
 
 # External APIs
 requests==2.31.0
