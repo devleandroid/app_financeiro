@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: investsmart
+      POSTGRES_PASSWORD: investsmart123
+      POSTGRES_DB: investsmart
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://investsmart:investsmart123@postgres:5432/investsmart
+      ENVIRONMENT: development
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app/src
+
+  frontend:
+    image: python:3.11-slim
+    working_dir: /app
+    command: streamlit run src/presentation/web/app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./:/app
+    environment:
+      API_URL: http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

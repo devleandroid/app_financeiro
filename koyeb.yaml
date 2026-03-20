@@ -1,0 +1,26 @@
+name: investsmart
+region: fra
+
+services:
+  - name: backend
+    type: web
+    github:
+      branch: main
+      repository: devleandroid/app_financeiro
+      dockerfile_path: Dockerfile
+    ports:
+      - port: 8000
+        protocol: http
+    routes:
+      - path: /api
+    env:
+      - name: DATABASE_URL
+        value: ${DATABASE_URL}
+      - name: ENVIRONMENT
+        value: production
+
+databases:
+  - name: investsmart-db
+    type: postgres
+    region: fra
+    plan: free

@@ -10,6 +10,7 @@ Este projeto combina dados de câmbio (Fixer.io), Bitcoin e indicadores econômi
 -   Interface web simples com Streamlit.
 -   Backend robusto com FastAPI.
 
+# Plataforma de análise de investimentos com dados em tempo real.# Plataforma de análise de investimentos com dados em tempo real.
 ## 🛠️ Tecnologias Utilizadas
 
 -   Python 3.12+
@@ -18,16 +19,35 @@ Este projeto combina dados de câmbio (Fixer.io), Bitcoin e indicadores econômi
 -   Pandas
 -   Requests
 
+- **Backend**: FastAPI + Uvicorn
+- **Frontend**: Streamlit + Plotly
+- **Database**: PostgreSQL
+- **Infra**: Docker + Koyeb
+
 ## ⚙️ Como Configurar e Executar
 
-### Pré-requisitos
+## 📋 Pré-requisitos
 
--   Python 3.12 ou superior instalado.
--   Uma chave de API gratuita do [Fixer.io](https://fixer.io/).
+- Python 3.12 ou superior instalado.
+- Uma chave de API gratuita do [Fixer.io](https://fixer.io/).
 
 ### Passos
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [URL_DO_SEU_REPOSITORIO]
-    cd meu_app_financeiro
+# Clone o repositório
+git clone https://github.com/devleandroid/app_financeiro.git
+cd app_financeiro### Passos
+
+# Clone o repositório
+git clone https://github.com/devleandroid/app_financeiro.git
+cd app_financeiro
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas chaves
+
+# Execute localmente
+make run-backend
+make run-frontend

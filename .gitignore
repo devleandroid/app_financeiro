@@ -8,58 +8,35 @@ env/
 venv/
 .env
 .venv
-pip-log.txt
-pip-delete-this-directory.txt
 
 # Database
 *.db
 *.sqlite3
-*.db-journal
-
-# Logs
-logs/
-*.log
+*.sqlite
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Project specific
-result
-nix/result
-*.bak
-*.backup
-*.old
+# Logs
+logs/
+*.log
 
-# Test cache
+# Testes
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Environment
-.env
-.env.local
+# Docker
+*.tar
 
-# Large files - ADICIONADOS
-*.sh
-*.iso
-*.img
-*.bin
-*.tar.gz
-*.zip
-Miniconda*.sh
-Anaconda*.sh
-*.exe
-*.dmg
-
-# Nix build results
-/result
-/nix/resultMiniconda*.sh
-Miniconda*.sh
+# Project specific
+result
+*.bak
+*.backup
