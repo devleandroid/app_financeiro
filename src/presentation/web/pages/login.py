@@ -1,7 +1,7 @@
 """Página de login simplificada"""
 import streamlit as st
 import requests
-import osimport os
+import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
