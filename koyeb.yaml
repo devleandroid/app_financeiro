@@ -7,20 +7,15 @@ services:
     github:
       branch: main
       repository: devleandroid/app_financeiro
-      dockerfile_path: Dockerfile
+    build:
+      buildpack: python
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000
     ports:
       - port: 8000
         protocol: http
     routes:
       - path: /api
     env:
-      - name: DATABASE_URL
-        value: ${DATABASE_URL}
       - name: ENVIRONMENT
         value: production
-
-databases:
-  - name: investsmart-db
-    type: postgres
-    region: fra
-    plan: free
