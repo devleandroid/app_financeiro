@@ -7,10 +7,7 @@ services:
     github:
       branch: main
       repository: devleandroid/app_financeiro
-    build:
-      buildpack: python
-    build_command: pip install -r requirements.txt
-    run_command: uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000
+      dockerfile_path: Dockerfile
     ports:
       - port: 8000
         protocol: http
