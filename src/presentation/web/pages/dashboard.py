@@ -5,8 +5,9 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 import time
+import os
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 def formatar_taxa(moeda: str, valor: float) -> str:
     """Formata a taxa de câmbio com 2 casas decimais para todas as moedas"""
