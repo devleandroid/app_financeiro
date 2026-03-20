@@ -2,7 +2,7 @@
 import streamlit as st
 import requests
 
-API_URL = "http://localhost:8000"
+API_URL = "electric-ki-investone-9623b27e.koyeb.app/"  #"http://localhost:8000"
 
 def render():
     """Renderiza a página de login"""
