@@ -1,8 +1,9 @@
 """Página de login simplificada"""
 import streamlit as st
 import requests
+import osimport os
 
-API_URL = "electric-ki-investone-9623b27e.koyeb.app/"  #"http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 def render():
     """Renderiza a página de login"""
