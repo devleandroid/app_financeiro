@@ -5,6 +5,8 @@ import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+st.caption(f"🔗 Conectando a: {API_URL}")
+
 def render():
     """Renderiza a página de login"""
     
