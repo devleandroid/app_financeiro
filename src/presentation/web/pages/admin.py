@@ -4,7 +4,9 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-API_URL = "http://localhost:8000"
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 def render():
     """Renderiza o painel admin"""

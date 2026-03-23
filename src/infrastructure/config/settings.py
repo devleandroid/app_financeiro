@@ -28,6 +28,11 @@ class Settings:
         "http://127.0.0.1:8502",
     ]
     
+    # Adicionar origens extras via variável de ambiente (separadas por vírgula)
+    _extra_origins = os.getenv("CORS_EXTRA_ORIGINS", "")
+    if _extra_origins:
+        CORS_ORIGINS.extend([o.strip() for o in _extra_origins.split(",") if o.strip()])
+    
     # Admin
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
     ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
