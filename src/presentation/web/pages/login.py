@@ -6,7 +6,11 @@ import os
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 st.caption(f"🔗 Conectando a: {API_URL}")
-
+# Tetnta ler do secrets.toml, depois do ambiente
+try:
+    API_URL = st.secrets.get("API_URL", os.getenv("API_URL", "http://localhost:8000"))
+except:
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
 def render():
     """Renderiza a página de login"""
     
