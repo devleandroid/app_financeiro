@@ -15,10 +15,10 @@ run-backend:
 	PYTHONPATH=. uvicorn src.presentation.api.main:app --reload --port 8000
 
 run-frontend:
-	PYTHONPATH=. streamlit run src/presentation.web.app:app --server.port 8501
+	PYTHONPATH=. streamlit run src/presentation/web/app.py --server.port 8501 --server.headless true
 
 test:
-	pytest tests/
+	pytest tests/ -v
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

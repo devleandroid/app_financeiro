@@ -1,45 +1,32 @@
-# App de Recomendações Financeiras 💰
+cat > README.md << 'EOF'
+# 💰 InvestSmart
 
-Este projeto combina dados de câmbio (Fixer.io), Bitcoin e indicadores econômicos para gerar 5 sugestões de investimento de curto e longo prazo.
+Plataforma de análise de investimentos com dados em tempo real via Fixer.io.
 
-## 🚀 Funcionalidades
-
--   Busca taxas de câmbio em tempo real (170+ moedas).
--   Simula dados de preço e tendência do Bitcoin.
--   Gera recomendações de investimento baseadas em uma lógica de negócio (customizável).
--   Interface web simples com Streamlit.
--   Backend robusto com FastAPI.
-
-# Plataforma de análise de investimentos com dados em tempo real.# Plataforma de análise de investimentos com dados em tempo real.
-## 🛠️ Tecnologias Utilizadas
-
--   Python 3.12+
--   FastAPI
--   Streamlit
--   Pandas
--   Requests
+## 🚀 Tecnologias
 
 - **Backend**: FastAPI + Uvicorn
 - **Frontend**: Streamlit + Plotly
-- **Database**: PostgreSQL
-- **Infra**: Docker + Koyeb
-
-## ⚙️ Como Configurar e Executar
+- **Database**: SQLite (desenvolvimento) / PostgreSQL (produção)
+- **Infra**: Docker + Koyeb / NixOS
 
 ## 📋 Pré-requisitos
 
-- Python 3.12 ou superior instalado.
-- Uma chave de API gratuita do [Fixer.io](https://fixer.io/).
+- Python 3.11+
+- Docker (opcional)
+- Chave de API do [Fixer.io](https://fixer.io)
 
-### Passos
+## 🔧 Instalação Local
 
-# Clone o repositório
-git clone https://github.com/devleandroid/app_financeiro.git
-cd app_financeiro### Passos
-
+```bash
 # Clone o repositório
 git clone https://github.com/devleandroid/app_financeiro.git
 cd app_financeiro
+
+# Crie um ambiente virtual
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate  # Windows
 
 # Instale as dependências
 pip install -r requirements.txt
@@ -49,5 +36,5 @@ cp .env.example .env
 # Edite .env com suas chaves
 
 # Execute localmente
-make run-backend
-make run-frontend
+make run-backend   # Terminal 1
+make run-frontend  # Terminal 2
