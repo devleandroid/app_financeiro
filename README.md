@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # 💰 InvestSmart
 
 Plataforma de análise de investimentos com dados em tempo real via Fixer.io.
