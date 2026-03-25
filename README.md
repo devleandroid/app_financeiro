@@ -149,20 +149,20 @@ O frontend pode ser publicado separadamente no Streamlit Cloud:
 ### 📁 Estrutura do Projeto
 
 
-# app_financeiro/
-# ├── src/
-# │   ├── domain/          # 📐 Regras de negócio
-# │   ├── application/     # ⚙️ Casos de uso
-# │   ├── infrastructure/  # 🗄️ Banco de dados, APIs externas
-# │   └── presentation/    # 🖥️ FastAPI + Streamlit
-# ├── tests/               # 🧪 Testes
-# ├── scripts/             # 🔧 Scripts utilitários
-# ├── nix/                 # ❄️ Configurações NixOS
-# ├── docs/                # 📚 Documentação
-# ├── Dockerfile           # 🐳 Container
-# ├── docker-compose.yml   # 🐳 Orquestração
-# ├── Makefile             # 🛠️ Comandos úteis
-# └── requirements.txt     # 📦 Dependências
+#### app_financeiro/
+#### ├── src/
+#### │   ├── domain/          # 📐 Regras de negócio
+#### │   ├── application/     # ⚙️ Casos de uso
+#### │   ├── infrastructure/  # 🗄️ Banco de dados, APIs externas
+#### │   └── presentation/    # 🖥️ FastAPI + Streamlit
+#### ├── tests/               # 🧪 Testes
+#### ├── scripts/             # 🔧 Scripts utilitários
+#### ├── nix/                 # ❄️ Configurações NixOS
+#### ├── docs/                # 📚 Documentação
+#### ├── Dockerfile           # 🐳 Container
+#### ├── docker-compose.yml   # 🐳 Orquestração
+#### ├── Makefile             # 🛠️ Comandos úteis
+#### └── requirements.txt     # 📦 Dependências
 
 ### 📝 Licença
 
