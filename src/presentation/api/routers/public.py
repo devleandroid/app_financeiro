@@ -2,13 +2,18 @@
 from fastapi import APIRouter, Request
 from datetime import datetime, timedelta
 import logging
-import random
 import string
 import secrets
 import sqlite3
 
+# Importar do arquivo correto (email_smtp.py)
+from src.infrastructure.external.email_smtp import EmailSender
+
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["public"])
+
+# Criar instância do serviço de email
+email_sender = EmailSender()
 
 def gerar_chave():
     """Gera uma chave aleatória de 8 caracteres"""
@@ -105,11 +110,20 @@ async def solicitar_chave(request: Request):
         ip = request.client.host if request.client else None
         salvar_solicitacao(email, chave, ip)
         
+        # ENVIAR EMAIL usando o EmailSender existente
+        email_enviado = email_sender.send_key(email, chave)
+        
+        if email_enviado:
+            mensagem = f"Chave enviada para {email}! Válida por 4 horas."
+        else:
+            mensagem = f"Chave gerada: {chave} (falha no email - use esta chave)"
+        
         logger.info(f"✅ Chave gerada: {chave} para {email}")
         
         return {
             "sucesso": True,
-            "mensagem": f"Chave enviada para {email}! Válida por 4 horas.\n🔑 Chave: {chave} (modo desenvolvimento)"
+            "mensagem": mensagem,
+            "chave": chave if not email_enviado else None
         }
         
     except Exception as e:

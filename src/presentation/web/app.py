@@ -8,7 +8,10 @@ import streamlit as st
 root_dir = Path(__file__).parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
-
+try:
+    API_URL = st.secrets.get("API_URL", os.getenv("API_URL", "http://localhost:8000"))
+except:
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
 # Forçar a leitura do Secret
 try:
     api_url = st.secrets["API_URL"]
