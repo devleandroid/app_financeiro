@@ -42,3 +42,6 @@ acessos.db.backup
 
 # Secrets
 .streamlit/secrets.toml
+
+ssh-key-2026-03-18.key
+ssh-key-2026-03-18.key.pub

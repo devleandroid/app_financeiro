@@ -1,39 +1,62 @@
 # 💰 InvestSmart
 
-Plataforma de análise de investimentos com dados em tempo real via Fixer.io.
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.36+-red.svg)](https://streamlit.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> Plataforma de análise de investimentos com dados em tempo real via Fixer.io.
+
+---
 
 ## 🚀 Tecnologias
 
-- **Backend**: FastAPI + Uvicorn
-- **Frontend**: Streamlit + Plotly
-- **Database**: SQLite (desenvolvimento) / PostgreSQL (produção)
-- **Infra**: Docker + Koyeb / NixOS
+| Camada | Tecnologias |
+|--------|-------------|
+| **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=flat&logo=uvicorn&logoColor=white) |
+| **Frontend** | ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=flat&logo=plotly&logoColor=white) |
+| **Database** | ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white) / ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white) |
+| **Infra** | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) ![Koyeb](https://img.shields.io/badge/Koyeb-4285F4?style=flat&logo=koyeb&logoColor=white) ![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white) |
+
+---
 
 ## 📋 Pré-requisitos
 
-- Python 3.11+
-- Docker (opcional)
-- Chave de API do [Fixer.io](https://fixer.io)
+- 🐍 **Python 3.11+**
+- 🐳 **Docker** (opcional)
+- 🔑 **Chave de API** do [Fixer.io](https://fixer.io) (gratuita)
+
+---
 
 ## 🔧 Instalação Local
 
+### 1️⃣ Clone o repositório
 
-# Clone o repositório
+
 git clone https://github.com/devleandroid/app_financeiro.git
 cd app_financeiro
 
-# Crie um ambiente virtual
+# 2️⃣ Crie um ambiente virtual
+
+
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
+# venv\Scripts\activate   # Windows
 
-# Instale as dependências
+# 3️⃣ Instale as dependências
+
+
 pip install -r requirements.txt
 
-# Configure as variáveis de ambiente
+# 4️⃣ Configure as variáveis de ambiente
+
+
 cp .env.example .env
 # Edite .env com suas chaves
-# cat > .env << 'EOF'
+
+# Exemplo de .env:
+
+
 # Application
 ENVIRONMENT=development
 DEBUG=true
@@ -55,16 +78,18 @@ EMAIL_SENHA=sua_chave_da_mensageria
 SMTP_SERVIDOR=smtp.gmail.com
 SMTP_PORTA=587
 
-# EOF
+# 5️⃣ Verifique o banco de dados
+
 
 # Verificar se o banco foi recriado
-# Se o banco não existe, o sistema recria automaticamente
-python -c "from src.infrastructure.database.unified_repository import admin_repo; print('Banco verificado')"
+python -c "from src.infrastructure.database.unified_repository import admin_repo; print('✅ Banco verificado')"
 
 # Verificar se foi criado
 ls -la acessos.db
 
-# Testar o fluxo completo
+# 6️⃣ Teste o fluxo completo
+
+
 # 1. Solicitar uma nova chave
 curl -X POST http://localhost:8000/api/solicitar-chave \
   -H "Content-Type: application/json" \
@@ -76,7 +101,13 @@ sqlite3 acessos.db "SELECT * FROM access_keys;"
 # 3. Verificar no admin
 curl -u admin:admin123 http://localhost:8000/api/admin/solicitacoes
 
-# Execute localmente
+# 7️⃣ Execute localmente
+# Serviço	Comando	Porta
+# Backend	./scripts/run_nix.sh backend	8000
+# Frontend	./scripts/run_nix.sh frontend	8501
+# Admin	./scripts/run_nix.sh admin	8502
+
+
 # Em um terminal
 ./scripts/run_nix.sh backend
 
@@ -86,8 +117,73 @@ curl -u admin:admin123 http://localhost:8000/api/admin/solicitacoes
 # Opcional: painel admin
 ./scripts/run_nix.sh admin
 
+# 8️⃣ Comandos úteis
+
+
 # Matar todos os processos
 ./scripts/run_nix.sh kill-all
 
 # Verificar ambiente
 ./scripts/run_nix.sh check
+
+# 🐳 Executar com Docker
+
+
+docker-compose up -d
+
+# Acesse:
+
+#    Backend: http://localhost:8000
+
+#    Frontend: http://localhost:8501
+
+# ☁️ Deploy
+# Koyeb
+
+# O projeto está configurado para deploy no Koyeb:
+
+#    Conecte seu repositório GitHub
+
+#    Configure as variáveis de ambiente
+
+#    Clique em "Deploy"
+
+# Streamlit Cloud
+
+# O frontend pode ser publicado separadamente no Streamlit Cloud:
+
+#    Acesse share.streamlit.io
+
+#    Conecte seu repositório
+
+#    Configure a variável API_URL apontando para o backend
+
+# 📁 Estrutura do Projeto
+
+
+app_financeiro/
+├── src/
+│   ├── domain/          # 📐 Regras de negócio
+│   ├── application/     # ⚙️ Casos de uso
+│   ├── infrastructure/  # 🗄️ Banco de dados, APIs externas
+│   └── presentation/    # 🖥️ FastAPI + Streamlit
+├── tests/               # 🧪 Testes
+├── scripts/             # 🔧 Scripts utilitários
+├── nix/                 # ❄️ Configurações NixOS
+├── docs/                # 📚 Documentação
+├── Dockerfile           # 🐳 Container
+├── docker-compose.yml   # 🐳 Orquestração
+├── Makefile             # 🛠️ Comandos úteis
+└── requirements.txt     # 📦 Dependências
+
+# 📝 Licença
+
+# Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+# 👤 Autor
+
+# Leandro Marques (DevLeandroid)
+
+https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white
+https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white
+
+# ⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
