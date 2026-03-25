@@ -30,103 +30,107 @@
 
 ## 🔧 Instalação Local
 
-### 1️⃣ Clone o repositório
+#### 1️⃣ Clone o repositório
 
 git clone https://github.com/devleandroid/app_financeiro.git
 cd app_financeiro
 
-### 2️⃣ Crie um ambiente virtual
+#### 2️⃣ Crie um ambiente virtual
 
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate   # Windows
 
-### 3️⃣ Instale as dependências
+#### 3️⃣ Instale as dependências
 
 pip install -r requirements.txt
 
-### 4️⃣ Configure as variáveis de ambiente
+#### 4️⃣ Configure as variáveis de ambiente
 
 cp .env.example .env
-### Edite .env com suas chaves
 
-### Exemplo de .env:
+Edite .env com suas chaves
+
+#### Exemplo de .env:
 
 Edite o arquivo .env com suas configurações:
-### Application
-ENVIRONMENT=development
-DEBUG=true
-API_URL=http://localhost:8000
+#### Application
+ENVIRONMENT=development 
 
-### Admin
+DEBUG=true 
+
+API_URL=http://localhost:8000 
+
+#### Admin
 ADMIN_USER=admin
+
 ADMIN_PASS=sua_senha_forte
 
-### API Keys
+#### API Keys
 FIXER_API_KEY=SUA_CHAVE_DA_API
 
-### Database
+#### Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/investsmart
 
-### Email (for reports)
-EMAIL_REMETENTE=seu_email@mail.com
-EMAIL_SENHA=sua_chave_da_mensageria
-SMTP_SERVIDOR=smtp.gmail.com
+#### Email (for reports)
+EMAIL_REMETENTE=seu_email@mail.com<br>
+EMAIL_SENHA=sua_chave_da_mensageria<br>
+SMTP_SERVIDOR=smtp.gmail.com<br>
 SMTP_PORTA=587
 
-### 5️⃣ Verifique o banco de dados
-### Verificar se o banco foi recriado
+#### 5️⃣ Verifique o banco de dados
+#### Verificar se o banco foi recriado
 python -c "from src.infrastructure.database.unified_repository import admin_repo; print('✅ Banco verificado')"
 
-### Verificar se foi criado
+#### Verificar se foi criado
 ls -la acessos.db
 
-### 6️⃣ Teste o fluxo completo
-### 1. Solicitar uma nova chave
+#### 6️⃣ Teste o fluxo completo
+#### 1. Solicitar uma nova chave
 curl -X POST http://localhost:8000/api/solicitar-chave \
   -H "Content-Type: application/json" \
   -d '{"email": "teste@exemplo.com"}'
 
-### 2. Verificar no banco
+#### 2. Verificar no banco
 sqlite3 acessos.db "SELECT * FROM access_keys;"
 
-### 3. Verificar no admin
+#### 3. Verificar no admin
 curl -u admin:admin123 http://localhost:8000/api/admin/solicitacoes
 
-### 7️⃣ Execute localmente
- Serviço	Comando	Porta
- Backend	./scripts/run_nix.sh backend	8000
- Frontend	./scripts/run_nix.sh frontend	8501
- Admin	./scripts/run_nix.sh admin	8502
+#### 7️⃣ Execute localmente
+#### Serviço	      &emsp;&emsp;&emsp; &emsp;        Comando	       &emsp; &emsp;&emsp; &emsp;&emsp;        Porta
+ Backend	&emsp;./scripts/run_nix.sh backend &emsp; 8000<br>
+ Frontend	&emsp;./scripts/run_nix.sh frontend  &emsp;	8501<br>
+ Admin	&emsp;./scripts/run_nix.sh admin	    &emsp;&emsp;&emsp; 8502
 
 
-### Em um terminal
+#### Em um terminal
 ./scripts/run_nix.sh backend
 
-### Em outro terminal
+#### Em outro terminal
 ./scripts/run_nix.sh frontend
 
-### Opcional: painel admin
+#### Opcional: painel admin
 ./scripts/run_nix.sh admin
 
-### 8️⃣ Comandos úteis
-### Matar todos os processos
+#### 8️⃣ Comandos úteis
+#### Matar todos os processos
 ./scripts/run_nix.sh kill-all
 
-### Verificar ambiente
+#### Verificar ambiente
 ./scripts/run_nix.sh check
 
-### 🐳 Executar com Docker
+#### 🐳 Executar com Docker
 docker-compose up -d
 
-### Acesse:
+#### Acesse:
 
 Backend: http://localhost:8000
 
 Frontend: http://localhost:8501
 
-### ☁️ Deploy
-## Koyeb
+#### ☁️ Deploy
+### Koyeb
 
 O projeto está configurado para deploy no Koyeb:
 
@@ -136,7 +140,7 @@ O projeto está configurado para deploy no Koyeb:
 
 3.  Clique em "Deploy"
 
-## Streamlit Cloud
+#### Streamlit Cloud
 
 O frontend pode ser publicado separadamente no Streamlit Cloud:
 
@@ -149,29 +153,29 @@ O frontend pode ser publicado separadamente no Streamlit Cloud:
 ### 📁 Estrutura do Projeto
 
 
-#### app_financeiro/
-#### ├── src/
-#### │   ├── domain/          # 📐 Regras de negócio
-#### │   ├── application/     # ⚙️ Casos de uso
-#### │   ├── infrastructure/  # 🗄️ Banco de dados, APIs externas
-#### │   └── presentation/    # 🖥️ FastAPI + Streamlit
-#### ├── tests/               # 🧪 Testes
-#### ├── scripts/             # 🔧 Scripts utilitários
-#### ├── nix/                 # ❄️ Configurações NixOS
-#### ├── docs/                # 📚 Documentação
-#### ├── Dockerfile           # 🐳 Container
-#### ├── docker-compose.yml   # 🐳 Orquestração
-#### ├── Makefile             # 🛠️ Comandos úteis
-#### └── requirements.txt     # 📦 Dependências
+app_financeiro/<br>
+├── src/<br>
+│   ├── domain/          # 📐 Regras de negócio<br>
+│   ├── application/     # ⚙️ Casos de uso<br>
+│   ├── infrastructure/  # 🗄️ Banco de dados, APIs externas<br>
+│   └── presentation/    # 🖥️ FastAPI + Streamlit<br>
+├── tests/               # 🧪 Testes<br>
+├── scripts/             # 🔧 Scripts utilitários<br>
+├── nix/                 # ❄️ Configurações NixOS<br>
+├── docs/                # 📚 Documentação<br>
+├── Dockerfile           # 🐳 Container<br>
+├── docker-compose.yml   # 🐳 Orquestração<br>
+├── Makefile             # 🛠️ Comandos úteis<br>
+└── requirements.txt     # 📦 Dependências
 
-### 📝 Licença
+#### 📝 Licença
 
-### Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
-### 👤 Autor
+#### Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+#### 👤 Autor
 
 ### Leandro Marques (DevLeandroid)
 
-https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white
-https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white
+[![Github](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/devleandroid/ledroid)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/leandroid-marques/)
 
-### ⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
+#### ⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
