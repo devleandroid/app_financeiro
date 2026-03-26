@@ -1,4 +1,4 @@
-name: investsmart
+name: investsmart-backend
 region: fra
 
 services:
@@ -7,12 +7,27 @@ services:
     github:
       branch: main
       repository: devleandroid/app_financeiro
-      dockerfile_path: Dockerfile
+    build:
+      buildpack: python
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000
     ports:
       - port: 8000
         protocol: http
     routes:
-      - path: /api
+      - path: /
     env:
       - name: ENVIRONMENT
         value: production
+      - name: DEBUG
+        value: "false"
+      - name: FIXER_API_KEY
+        secret: fixer_api_key
+      - name: ADMIN_USER
+        value: admin
+      - name: ADMIN_PASS
+        secret: admin_pass
+      - name: EMAIL_REMETENTE
+        secret: email_remetente
+      - name: EMAIL_SENHA
+        secret: email_senha
