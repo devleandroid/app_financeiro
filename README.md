@@ -47,6 +47,7 @@ pip install -r requirements.txt
 
 #### 4️⃣ Configure as variáveis de ambiente
 
+
 cp .env.example .env
 
 Edite .env com suas chaves
@@ -54,6 +55,7 @@ Edite .env com suas chaves
 #### Exemplo de .env:
 
 Edite o arquivo .env com suas configurações:
+
 #### Application
 ENVIRONMENT=development 
 
@@ -85,8 +87,10 @@ python -c "from src.infrastructure.database.unified_repository import admin_repo
 #### Verificar se foi criado
 ls -la acessos.db
 
+
 #### 6️⃣ Teste o fluxo completo
 #### 1. Solicitar uma nova chave
+
 curl -X POST http://localhost:8000/api/solicitar-chave \
   -H "Content-Type: application/json" \
   -d '{"email": "teste@exemplo.com"}'
@@ -139,6 +143,7 @@ O projeto está configurado para deploy no Koyeb:
 2.  Configure as variáveis de ambiente
 
 3.  Clique em "Deploy"
+
 
 #### Streamlit Cloud
 

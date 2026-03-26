@@ -17,17 +17,28 @@ services:
     routes:
       - path: /
     env:
+      # Application
       - name: ENVIRONMENT
         value: production
       - name: DEBUG
         value: "false"
-      - name: FIXER_API_KEY
-        secret: fixer_api_key
+      
+      # Admin
       - name: ADMIN_USER
         value: admin
       - name: ADMIN_PASS
         secret: admin_pass
+      
+      # API Keys
+      - name: FIXER_API_KEY
+        secret: fixer_api_key
+      
+      # Email
       - name: EMAIL_REMETENTE
         secret: email_remetente
       - name: EMAIL_SENHA
         secret: email_senha
+      - name: SMTP_SERVIDOR
+        value: smtp.gmail.com
+      - name: SMTP_PORTA
+        value: "587"
