@@ -32,12 +32,10 @@
 
 ### 1️⃣ Clone o repositório
 
-
 git clone https://github.com/devleandroid/app_financeiro.git
 cd app_financeiro
 
 ### 2️⃣ Crie um ambiente virtual
-
 
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
@@ -45,18 +43,16 @@ venv\Scripts\activate   # Windows
 
 ### 3️⃣ Instale as dependências
 
-
 pip install -r requirements.txt
 
 ### 4️⃣ Configure as variáveis de ambiente
-
 
 cp .env.example .env
 ### Edite .env com suas chaves
 
 ### Exemplo de .env:
 
-
+Edite o arquivo .env com suas configurações:
 ### Application
 ENVIRONMENT=development
 DEBUG=true
@@ -86,8 +82,6 @@ python -c "from src.infrastructure.database.unified_repository import admin_repo
 ls -la acessos.db
 
 ### 6️⃣ Teste o fluxo completo
-
-
 ### 1. Solicitar uma nova chave
 curl -X POST http://localhost:8000/api/solicitar-chave \
   -H "Content-Type: application/json" \
@@ -127,30 +121,30 @@ docker-compose up -d
 
 ### Acesse:
 
-    Backend: http://localhost:8000
+Backend: http://localhost:8000
 
-    Frontend: http://localhost:8501
+Frontend: http://localhost:8501
 
 ### ☁️ Deploy
- Koyeb
+## Koyeb
 
- O projeto está configurado para deploy no Koyeb:
+O projeto está configurado para deploy no Koyeb:
 
-    Conecte seu repositório GitHub
+1.  Conecte seu repositório GitHub
 
-    Configure as variáveis de ambiente
+2.  Configure as variáveis de ambiente
 
-    Clique em "Deploy"
+3.  Clique em "Deploy"
 
-### Streamlit Cloud
+## Streamlit Cloud
 
- O frontend pode ser publicado separadamente no Streamlit Cloud:
+O frontend pode ser publicado separadamente no Streamlit Cloud:
 
-    Acesse share.streamlit.io
+1. Acesse share.streamlit.io
 
-    Conecte seu repositório
+2. Conecte seu repositório
 
-    Configure a variável API_URL apontando para o backend
+3. Configure a variável API_URL apontando para o backend
 
 ### 📁 Estrutura do Projeto
 
@@ -177,7 +171,7 @@ app_financeiro/
 
 ### Leandro Marques (DevLeandroid)
 
-https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white
-https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white
+[![Github](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/devleandroid/ledroid)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/leandroid-marques/)
 
 ### ⭐ Se este projeto te ajudou, considere dar uma estrela no GitHub!
