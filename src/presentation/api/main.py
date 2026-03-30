@@ -1,4 +1,4 @@
-# Ponto de entrada da API FastAPI"""
+"""Ponto de entrada da API FastAPI"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -10,12 +10,15 @@ from src.infrastructure.config.logging import setup_logging
 from src.presentation.api.routers import public
 from src.presentation.api.routers import admin
 from src.presentation.api.routers import investment
+from src.presentation.api.routers import debug  # Import do debug router
 
 # Configurar logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# Criar app FastAPI
+# ============================================
+# CRIAR APP FASTAPI (PRIMEIRO!)
+# ============================================
 app = FastAPI(
     title=settings.APP_NAME,
     description="API para análise de investimentos",
@@ -23,7 +26,9 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# Configurar CORS
+# ============================================
+# CONFIGURAR CORS
+# ============================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -32,11 +37,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers - TODOS os endpoints estarão disponíveis
+# ============================================
+# INCLUIR ROUTERS (DEPOIS DO APP!)
+# ============================================
 app.include_router(public.router, prefix="/api")
 app.include_router(investment.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(debug.router, prefix="/api")  # Debug router
 
+# ============================================
+# ENDPOINTS BÁSICOS
+# ============================================
 @app.get("/")
 async def root():
     """Rota raiz"""
@@ -44,10 +55,12 @@ async def root():
         "app": settings.APP_NAME,
         "version": settings.VERSION,
         "status": "online",
+        "environment": settings.ENVIRONMENT,
         "endpoints": {
             "public": "/api/health, /api/ping, /api/solicitar-chave, /api/validar-chave",
             "investment": "/api/investment/dados, /api/investment/recomendacoes",
-            "admin": "/api/admin/solicitacoes, /api/admin/acessos (protegido)"
+            "admin": "/api/admin/solicitacoes, /api/admin/acessos (protegido)",
+            "debug": "/api/debug/env (protegido)"
         }
     }
 
@@ -60,6 +73,9 @@ async def api_root():
         "versao": settings.VERSION
     }
 
+# ============================================
+# EVENTOS DE STARTUP/SHUTDOWN
+# ============================================
 @app.on_event("startup")
 async def startup_event():
     logger.info("🚀 API iniciada com sucesso!")
