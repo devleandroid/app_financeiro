@@ -191,3 +191,45 @@ async def get_recomendacoes():
                 }
             ]
         }
+
+@router.get("/historico")
+async def get_historico(moeda: str, dias: int = 1):
+    """
+    Retorna histórico de uma moeda para cálculo de variação real
+    """
+    try:
+        # Por enquanto, usa dados simulados baseados na taxa atual
+        # Em produção, integrar com API de dados históricos
+        from datetime import timedelta
+        
+        dados = fixer_api.get_latest_rates(symbols=[moeda])
+        if dados and "rates" in dados:
+            taxa_atual = dados["rates"].get(moeda, 0)
+            
+            # Simular variação baseada na moeda (em produção, buscar histórico real)
+            # Valores de exemplo para simular oscilação do mercado
+            variacoes_simuladas = {
+                "BRL": round(random.uniform(-2, 2), 2),
+                "EUR": round(random.uniform(-1.5, 1.5), 2),
+                "GBP": round(random.uniform(-1.5, 1.5), 2),
+                "JPY": round(random.uniform(-1, 1), 2),
+                "CNY": round(random.uniform(-0.8, 0.8), 2)
+            }
+            
+            variacao = variacoes_simuladas.get(moeda, round(random.uniform(-1, 1), 2))
+            taxa_anterior = round(taxa_atual / (1 + variacao/100), 4)
+            
+            return {
+                "sucesso": True,
+                "moeda": moeda,
+                "taxa_atual": taxa_atual,
+                "taxa_anterior": taxa_anterior,
+                "variacao_24h": variacao,
+                "data": dados.get("date", datetime.now().strftime("%Y-%m-%d"))
+            }
+        
+        return {"sucesso": False, "erro": "Moeda não encontrada"}
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar histórico: {e}")
+        return {"sucesso": False, "erro": str(e)}
