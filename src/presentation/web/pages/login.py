@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "@admin123")
 
 def verificar_senha_admin(senha: str) -> bool:
     """Verifica se a senha do admin está correta"""
