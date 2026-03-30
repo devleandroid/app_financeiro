@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+# Tenta carregar a senha de diferentes nomes de variável
 ADMIN_PASSWORD = os.getenv("ADMIN_PASS")
 
 def verificar_senha_admin(senha: str) -> bool:
@@ -107,6 +109,10 @@ def render():
         st.markdown("### 🔒 Área Administrativa")
         st.markdown("Acesso restrito - apenas administradores")
         
+        # Debug para verificar se a senha está sendo carregada (remover em produção)
+        if os.getenv("ENVIRONMENT") == "development":
+            st.caption(f"🔧 Debug: ADMIN_PASSWORD configurada? {'✅ Sim' if ADMIN_PASSWORD != 'admin123' else '⚠️ Usando padrão'}")
+        
         # Campo de senha
         senha_admin = st.text_input(
             "Senha de Administrador", 
@@ -115,7 +121,7 @@ def render():
             key="admin_password"
         )
         
-        # Botão de login do admin - ocupando toda a largura disponível
+        # Botão de login do admin
         if st.button("🔓 Entrar no Painel Admin", use_container_width=True, type="primary"):
             if senha_admin:
                 if verificar_senha_admin(senha_admin):
