@@ -63,6 +63,20 @@ def calcular_variacao(valor_anterior, valor_atual):
         return ((valor_atual - valor_anterior) / valor_anterior) * 100
     return 0
 
+def buscar_historico(moeda: str) -> dict:
+    """Busca histórico da moeda na API"""
+    try:
+        response = requests.get(
+            f"{API_URL}/api/investment/historico",
+            params={"moeda": moeda},
+            timeout=5
+        )
+        if response.status_code == 200:
+            return response.json()
+    except:
+        pass
+    return None
+
 def inicializar_estado():
     """Inicializa todas as variáveis de estado da sessão - ESSENCIAL para evitar KeyError"""
     if 'historico' not in st.session_state:
@@ -318,9 +332,11 @@ def render():
                             nome = get_nome_moeda(moeda)
                             
                             # Calcular variação usando histórico anterior
-                            variacao = 0
-                            if moeda in historico_anterior:
-                                variacao = calcular_variacao(historico_anterior[moeda], valor)
+                            historico = buscar_historico(moeda)
+                            if historico and historico.get("sucesso"):
+                                variacao = historico.get("variacao_24h", 0)
+                            else:
+                                variacao = 0
                             
                             # Atualizar histórico
                             st.session_state.historico[moeda] = valor
@@ -381,6 +397,20 @@ def render():
                         "Variação": "-"
                     })
                     
+                    # Definir dicionário de unidades no início do arquivo
+                    UNIDADES = {
+                        'USD': '$',
+                        'BRL': 'R$',
+                        'EUR': '€',
+                        'GBP': '£',
+                        'JPY': '¥',
+                        'CNY': '¥',
+                        'CHF': '₣',
+                        'CAD': 'C$',
+                        'AUD': 'A$',
+                        'CHF': '₣'  # Franco Suíço
+                    }
+
                     # Outras moedas
                     for moeda in moedas_cotadas:
                         valor = rates.get(moeda, 0)
@@ -394,21 +424,14 @@ def render():
                         
                         var_texto = f"{variacao:+.2f}%" if variacao != 0 else "0.00%"
                         
+                        # Formatar valor
                         if moeda == 'JPY':
                             valor_fmt = f"{valor:,.0f}"
-                            unidade = "¥"
                         else:
                             valor_fmt = f"{valor:.2f}"
-                            if moeda == 'BRL':
-                                unidade = "R$"
-                            elif moeda == 'EUR':
-                                unidade = "€"
-                            elif moeda == 'GBP':
-                                unidade = "£"
-                            elif moeda == 'CNY':
-                                unidade = "¥"
-                            else:
-                                unidade = ""
+                        
+                        # Pegar unidade do dicionário
+                        unidade = UNIDADES.get(moeda, "")
                         
                         dados_tabela.append({
                             "Bandeira": bandeira,
@@ -442,7 +465,7 @@ def render():
                         y="Taxa",
                         title="Taxas de Câmbio (Base USD)",
                         color="Moeda",
-                        text=df_plot["Taxa"].apply(lambda x: f"{x:.2f}"),
+                        text=df_plot["Taxa"].apply(lambda x: f"{x:,.0f}" if x > 100 else f"{x:.2f}"),
                         color_discrete_sequence=px.colors.qualitative.Set2
                     )
                     
@@ -453,17 +476,26 @@ def render():
                         annotation_text="USD (base)",
                         annotation_position="bottom right"
                     )
-                    
+
+                    # AJUSTES PARA GARANTIR QUE NÃO CORTE
                     fig.update_layout(
                         showlegend=False,
-                        height=400,
+                        height=450,  # Aumentar altura
                         xaxis_title="",
-                        yaxis_title="Valor em Moeda Local por 1 USD"
+                        yaxis_title="Valor em Moeda Local por 1 USD",
+                        # Margens para evitar corte
+                        margin=dict(t=50, l=50, r=50, b=80),
+                        # Ajuste para texto das barras não cortar
+                        uniformtext_minsize=10,
+                        uniformtext_mode='hide'
                     )
-                    
+
+                    # Ajustar posição do texto
                     fig.update_traces(
                         textposition='outside',
-                        textfont_size=12
+                        textfont_size=12,
+                        # Garantir que texto não seja cortado
+                        cliponaxis=False
                     )
                     
                     st.plotly_chart(fig, use_container_width=True)

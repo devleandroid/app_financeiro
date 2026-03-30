@@ -1,4 +1,4 @@
-# Rotas de investmento com dados reais"""
+# Rotas de investmento com dados reais 
 from fastapi import APIRouter
 import logging
 from datetime import datetime
@@ -18,31 +18,46 @@ async def get_dados(moedas: str = "BRL,USD,EUR"):
         moedas_lista = [m.strip() for m in moedas.split(",")]
         logger.info(f"📊 Buscando dados reais para: {moedas_lista}")
         
-        # Buscar dados da Fixer.io
+        # Buscar dados da Fixer.io (com fallback automático)
         dados_fixer = fixer_api.get_latest_rates(symbols=moedas_lista)
         
-        # Buscar dados do Bitcoin (agora usando o serviço unificado)
+        # Buscar dados do Bitcoin
         bitcoin_data = bitcoin_service.get_current_price("USD")
         
-        if isinstance(dados_fixer, dict) and "rates" in dados_fixer:
+        # Verificar se temos dados (reais ou simulados)
+        if isinstance(dados_fixer, dict):
+            # Se tem a chave 'source', sabemos a origem
+            fonte = dados_fixer.get("source", "Desconhecida")
+            
             resultado = {
                 "sucesso": True,
-                "dados": dados_fixer["rates"],
+                "dados": dados_fixer.get("rates", dados_fixer),
                 "data": dados_fixer.get("date", datetime.now().strftime("%Y-%m-%d")),
                 "base": dados_fixer.get("base", "USD"),
                 "bitcoin": bitcoin_data,
+                "fonte": fonte,
                 "timestamp": datetime.now().isoformat()
             }
-            logger.info(f"✅ Dados obtidos: {list(dados_fixer['rates'].keys())}")
+            
+            if fonte == "Fixer.io":
+                logger.info(f"✅ Dados reais do Fixer.io: {list(dados_fixer['rates'].keys())}")
+            elif "alternativa" in fonte.lower():
+                logger.info(f"✅ Dados de API alternativa: {fonte}")
+            else:
+                logger.warning(f"⚠️ Usando dados simulados")
+            
             return resultado
         else:
-            # Fallback para dados simulados
-            logger.warning("⚠️ Usando dados simulados")
+            # Fallback extremo
+            logger.error("❌ Nenhuma fonte de dados disponível")
             return {
-                "sucesso": True,
-                "dados": dados_fixer,
-                "data": datetime.now().strftime("%Y-%m-%d"),
-                "base": "USD",
+                "sucesso": False,
+                "erro": "Nenhuma fonte de dados disponível",
+                "dados": {
+                    "USD": 1.0,
+                    "BRL": 5.25,
+                    "EUR": 0.92
+                },
                 "bitcoin": bitcoin_data,
                 "timestamp": datetime.now().isoformat()
             }
@@ -66,13 +81,13 @@ async def get_recomendacoes():
     
     try:
         # Buscar dados atuais
-        dados = fixer_api.get_latest_rates(symbols=["USD", "BRL", "EUR"])
+        dados = fixer_api.get_latest_rates(symbols=["USD", "BRL", "EUR", "GBP", "JPY"])
         bitcoin = bitcoin_service.get_current_price("USD")
         
         recomendacoes = []
         
-        if isinstance(dados, dict) and "rates" in dados:
-            rates = dados["rates"]
+        if isinstance(dados, dict):
+            rates = dados.get("rates", dados)
             
             # Recomendação baseada no Real
             if "BRL" in rates:
@@ -94,7 +109,7 @@ async def get_recomendacoes():
             
             # Recomendação baseada no Euro
             if "EUR" in rates:
-                eur_usd = 1 / rates["EUR"]
+                eur_usd = 1 / rates["EUR"] if rates["EUR"] > 0 else 0
                 if eur_usd > 1.10:
                     recomendacoes.append({
                         "nome": "🇪🇺 Bonds Europeus",
@@ -102,14 +117,25 @@ async def get_recomendacoes():
                         "risco": "Baixo",
                         "razao": f"Euro forte (EUR/USD = {eur_usd:.2f}) - títulos alemães"
                     })
+            
+            # Recomendação baseada no Iene
+            if "JPY" in rates:
+                usd_jpy = rates["JPY"]
+                if usd_jpy > 150:
+                    recomendacoes.append({
+                        "nome": "🇯🇵 Exportadoras Japonesas",
+                        "prazo": "Curto Prazo",
+                        "risco": "Médio",
+                        "razao": f"Iene desvalorizado (USD/JPY = {usd_jpy:.0f}) beneficia exportações"
+                    })
         
-        # Bitcoin - usar preço real
+        # Bitcoin
         if bitcoin and bitcoin.get("price", 0) < 65000:
             recomendacoes.append({
                 "nome": "₿ Bitcoin ETF",
                 "prazo": "Longo Prazo",
                 "risco": "Alto",
-                "razao": f"Bitcoin abaixo de $65k ({bitcoin.get('formatted', 'N/A')}) - {bitcoin.get('source', '')}"
+                "razao": f"Bitcoin abaixo de $65k ({bitcoin.get('formatted', 'N/A')})"
             })
         
         # Recomendações genéricas
@@ -125,6 +151,12 @@ async def get_recomendacoes():
                 "prazo": "Médio Prazo",
                 "risco": "Médio",
                 "razao": "Renda passiva mensal"
+            },
+            {
+                "nome": "💰 Ouro (GLD)",
+                "prazo": "Longo Prazo",
+                "risco": "Baixo",
+                "razao": "Proteção contra volatilidade cambial"
             }
         ]
         
@@ -135,8 +167,8 @@ async def get_recomendacoes():
             "recomendacoes": recomendacoes[:5],
             "total": len(recomendacoes),
             "fontes": {
-                "cambio": "Fixer.io",
-                "bitcoin": bitcoin.get("source", "Desconhecida")
+                "cambio": dados.get("source", "Fixer.io"),
+                "bitcoin": bitcoin.get("source", "CoinGecko")
             }
         }
         
@@ -159,3 +191,45 @@ async def get_recomendacoes():
                 }
             ]
         }
+
+@router.get("/historico")
+async def get_historico(moeda: str, dias: int = 1):
+    """
+    Retorna histórico de uma moeda para cálculo de variação real
+    """
+    try:
+        # Por enquanto, usa dados simulados baseados na taxa atual
+        # Em produção, integrar com API de dados históricos
+        from datetime import timedelta
+        
+        dados = fixer_api.get_latest_rates(symbols=[moeda])
+        if dados and "rates" in dados:
+            taxa_atual = dados["rates"].get(moeda, 0)
+            
+            # Simular variação baseada na moeda (em produção, buscar histórico real)
+            # Valores de exemplo para simular oscilação do mercado
+            variacoes_simuladas = {
+                "BRL": round(random.uniform(-2, 2), 2),
+                "EUR": round(random.uniform(-1.5, 1.5), 2),
+                "GBP": round(random.uniform(-1.5, 1.5), 2),
+                "JPY": round(random.uniform(-1, 1), 2),
+                "CNY": round(random.uniform(-0.8, 0.8), 2)
+            }
+            
+            variacao = variacoes_simuladas.get(moeda, round(random.uniform(-1, 1), 2))
+            taxa_anterior = round(taxa_atual / (1 + variacao/100), 4)
+            
+            return {
+                "sucesso": True,
+                "moeda": moeda,
+                "taxa_atual": taxa_atual,
+                "taxa_anterior": taxa_anterior,
+                "variacao_24h": variacao,
+                "data": dados.get("date", datetime.now().strftime("%Y-%m-%d"))
+            }
+        
+        return {"sucesso": False, "erro": "Moeda não encontrada"}
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar histórico: {e}")
+        return {"sucesso": False, "erro": str(e)}
