@@ -1,7 +1,7 @@
+"""Painel Administrativo com autenticação"""
 import streamlit as st
 import requests
 import pandas as pd
-import plotly.express as px
 from datetime import datetime
 import os
 
@@ -32,6 +32,18 @@ def render():
     st.markdown(f"Bem-vindo, administrador!")
     st.markdown("---")
     
+    # Verificar conexão com a API
+    try:
+        health_response = requests.get(f"{API_URL}/api/health", timeout=5)
+        if health_response.status_code != 200:
+            st.error(f"❌ API não está respondendo. Status: {health_response.status_code}")
+            st.info(f"URL da API: {API_URL}")
+            return
+    except Exception as e:
+        st.error(f"❌ Não foi possível conectar à API: {e}")
+        st.info(f"URL da API: {API_URL}")
+        return
+    
     # Menu simplificado
     menu = st.radio(
         "Navegação",
@@ -39,8 +51,10 @@ def render():
         horizontal=True
     )
     
-    # Credenciais para API (em produção, usar variáveis de ambiente)
-    auth = (os.getenv("ADMIN_USER", "admin"), os.getenv("ADMIN_PASS", "admin123"))
+    # Credenciais para API (tentar ambos os nomes de variável)
+    admin_user = os.getenv("ADMIN_USER", "admin")
+    admin_pass = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
+    auth = (admin_user, admin_pass)
     
     if menu == "📊 Visão Geral":
         render_visao_geral(auth)
@@ -56,7 +70,7 @@ def render_visao_geral(auth):
         response = requests.get(
             f"{API_URL}/api/admin/estatisticas",
             auth=auth,
-            timeout=5
+            timeout=10
         )
         
         if response.status_code == 200:
@@ -78,12 +92,14 @@ def render_visao_geral(auth):
                 st.markdown("---")
                 st.success("✅ Dados atualizados em tempo real")
             else:
-                st.error(f"Erro: {dados.get('erro', 'Desconhecido')}")
+                st.error(f"Erro na API: {dados.get('erro', 'Desconhecido')}")
+        elif response.status_code == 401:
+            st.error("❌ Credenciais de admin inválidas! Verifique as variáveis ADMIN_USER e ADMIN_PASSWORD no Koyeb.")
         else:
-            st.warning("API não disponível")
+            st.error(f"❌ API retornou status {response.status_code}")
                 
     except Exception as e:
-        st.error(f"Erro: {e}")
+        st.error(f"❌ Erro ao carregar dados: {e}")
 
 def render_solicitacoes(auth):
     """Lista de solicitações"""
@@ -94,7 +110,7 @@ def render_solicitacoes(auth):
         response = requests.get(
             f"{API_URL}/api/admin/solicitacoes",
             auth=auth,
-            timeout=5
+            timeout=10
         )
         
         if response.status_code == 200:
@@ -111,8 +127,10 @@ def render_solicitacoes(auth):
                 )
             else:
                 st.info("Nenhuma solicitação encontrada")
+        elif response.status_code == 401:
+            st.error("❌ Credenciais inválidas")
         else:
-            st.warning("API não disponível")
+            st.warning(f"API retornou status {response.status_code}")
             
     except Exception as e:
         st.error(f"Erro: {e}")
@@ -126,7 +144,7 @@ def render_acessos(auth):
         response = requests.get(
             f"{API_URL}/api/admin/acessos",
             auth=auth,
-            timeout=5
+            timeout=10
         )
         
         if response.status_code == 200:
@@ -136,8 +154,10 @@ def render_acessos(auth):
                 st.dataframe(df, use_container_width=True)
             else:
                 st.info("Nenhum acesso registrado")
+        elif response.status_code == 401:
+            st.error("❌ Credenciais inválidas")
         else:
-            st.warning("API não disponível")
+            st.warning(f"API retornou status {response.status_code}")
             
     except Exception as e:
         st.error(f"Erro: {e}")
