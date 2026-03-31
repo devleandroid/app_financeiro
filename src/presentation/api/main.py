@@ -11,6 +11,7 @@ from src.presentation.api.routers import public
 from src.presentation.api.routers import admin
 from src.presentation.api.routers import investment
 from src.presentation.api.routers import debug  # Import do debug router
+from src.presentation.api.routers import health
 
 # Configurar logging
 setup_logging()
