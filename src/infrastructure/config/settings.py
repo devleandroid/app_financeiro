@@ -26,11 +26,13 @@ class Settings:
         "http://localhost:8502",
         "http://127.0.0.1:8501",
         "http://127.0.0.1:8502",
+        "https://*.streamlit.app",
+        "https://*.koyeb.app"
     ]
     
-    # Admin
+    # Admin - suporta ambos os nomes de variável
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+    ADMIN_PASS = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
     
     # APIs externas
     FIXER_API_KEY = os.getenv("FIXER_API_KEY", "")
@@ -43,6 +45,14 @@ class Settings:
     
     # Banco de dados
     DATABASE_URL = os.getenv("DATABASE_URL", "acessos.db")
+    
+    @property
+    def is_development(self):
+        return self.ENVIRONMENT == "development"
+    
+    @property
+    def is_production(self):
+        return self.ENVIRONMENT == "production"
 
 # Instância global
 settings = Settings()
