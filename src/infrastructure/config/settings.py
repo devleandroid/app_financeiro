@@ -30,7 +30,7 @@ class Settings:
     
     # Admin
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "@admin123")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
     
     # APIs externas
     FIXER_API_KEY = os.getenv("FIXER_API_KEY", "")
