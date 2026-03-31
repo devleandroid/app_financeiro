@@ -12,7 +12,7 @@ security = HTTPBasic()
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     """Verifica credenciais do admin"""
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    ADMIN_PASS = os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD", "admin123")
+    ADMIN_PASS = os.getenv("ADMIN_PASSWORD") or "admin123"
     
     correct_username = secrets.compare_digest(credentials.username, ADMIN_USER)
     correct_password = secrets.compare_digest(credentials.password, ADMIN_PASS)
@@ -25,8 +25,9 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 async def get_env_vars(admin: str = Depends(verify_admin)):
     """Retorna status das variáveis de ambiente (apenas para admin)"""
     vars_status = {
-        "ADMIN_USER": "✅ Configurado" if os.getenv("ADMIN_USER") else "❌ Não configurado",
-        "ADMIN_PASS/ADMIN_PASSWORD": "✅ Configurado" if (os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD")) else "❌ Não configurado",
+        "ADMIN_USER": os.getenv("ADMIN_USER", "NÃO CONFIGURADO"),
+        "ADMIN_PASSWORD": "✅ Configurado" if os.getenv("ADMIN_PASSWORD") else "❌ Não configurado",
+        "ADMIN_PASS": "✅ Configurado" if os.getenv("ADMIN_PASS") else "❌ Não configurado",
         "ENVIRONMENT": os.getenv("ENVIRONMENT", "NÃO CONFIGURADO"),
         "FIXER_API_KEY": "✅ Configurado" if os.getenv("FIXER_API_KEY") else "❌ Não configurado",
         "EMAIL_REMETENTE": "✅ Configurado" if os.getenv("EMAIL_REMETENTE") else "⚠️ Opcional",
@@ -34,5 +35,9 @@ async def get_env_vars(admin: str = Depends(verify_admin)):
     return {
         "status": "ok",
         "service": "investsmart-backend",
-        "variaveis": vars_status
+        "variaveis": vars_status,
+        "raw": {
+            "ADMIN_USER": os.getenv("ADMIN_USER"),
+            "ADMIN_PASSWORD": "***" if os.getenv("ADMIN_PASSWORD") else None,
+        }
     }
