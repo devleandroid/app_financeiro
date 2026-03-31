@@ -38,6 +38,7 @@ result
 *.bak
 *.backup
 .archives/
+acessos.db
 acessos.db.backup
 
 # Secrets
