@@ -5,13 +5,22 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Carregar variáveis do .env
-load_dotenv()
+# Carregar variáveis do .env (apenas desenvolvimento)
+load_dotenv(override=True)
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Tenta carregar a senha de diferentes nomes de variável
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or None
+
+# Se não encontrou nenhuma, usar padrão apenas em desenvolvimento
+if ADMIN_PASSWORD is None:
+    if ENVIRONMENT == "development":
+        ADMIN_PASSWORD = "admin123"
+        st.warning("⚠️ Usando senha padrão 'admin123' (apenas desenvolvimento)")
+    else:
+        st.error("❌ Senha do administrador não configurada! Configure ADMIN_PASSWORD no Koyeb.")
 
 def verificar_senha_admin(senha: str) -> bool:
     """Verifica se a senha do admin está correta"""
@@ -35,6 +44,7 @@ def render():
         return
     
     st.caption(f"🔗 API: {API_URL}")
+    st.caption(f"🔧 Ambiente: {ENVIRONMENT}")
     
     # Três abas
     tab1, tab2, tab3 = st.tabs(["👤 Solicitar Acesso", "🔓 Já tenho chave", "⚡ Administrador"])
@@ -109,9 +119,9 @@ def render():
         st.markdown("### 🔒 Área Administrativa")
         st.markdown("Acesso restrito - apenas administradores")
         
-        # Debug para verificar se a senha está sendo carregada (remover em produção)
-        if os.getenv("ENVIRONMENT") == "development":
-            st.caption(f"🔧 Debug: ADMIN_PASSWORD configurada? {'✅ Sim' if ADMIN_PASSWORD != 'admin123' else '⚠️ Usando padrão'}")
+        # Debug da senha configurada (apenas desenvolvimento)
+        if ENVIRONMENT == "development":
+            st.caption(f"🔧 Debug: ADMIN_PASSWORD = {'*' * len(ADMIN_PASSWORD)}")
         
         # Campo de senha
         senha_admin = st.text_input(
@@ -131,6 +141,9 @@ def render():
                     st.rerun()
                 else:
                     st.error("❌ Senha incorreta!")
+                    # Debug: mostrar o que foi digitado vs esperado (apenas desenvolvimento)
+                    if ENVIRONMENT == "development":
+                        st.caption(f"🔧 Debug: Digitado = '{senha_admin}', Esperado = '{ADMIN_PASSWORD}'")
             else:
                 st.warning("Digite a senha")
         

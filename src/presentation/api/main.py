@@ -10,7 +10,7 @@ from src.infrastructure.config.logging import setup_logging
 from src.presentation.api.routers import public
 from src.presentation.api.routers import admin
 from src.presentation.api.routers import investment
-from src.presentation.api.routers import debug  # Import do debug router
+from src.presentation.api.routers import debug
 from src.presentation.api.routers import health
 
 # Configurar logging
@@ -41,10 +41,11 @@ app.add_middleware(
 # ============================================
 # INCLUIR ROUTERS (DEPOIS DO APP!)
 # ============================================
+app.include_router(health.router, prefix="/api")
 app.include_router(public.router, prefix="/api")
 app.include_router(investment.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
-app.include_router(debug.router, prefix="/api")  # Debug router
+app.include_router(debug.router, prefix="/api")
 
 # ============================================
 # ENDPOINTS BÁSICOS
@@ -56,13 +57,7 @@ async def root():
         "app": settings.APP_NAME,
         "version": settings.VERSION,
         "status": "online",
-        "environment": settings.ENVIRONMENT,
-        "endpoints": {
-            "public": "/api/health, /api/ping, /api/solicitar-chave, /api/validar-chave",
-            "investment": "/api/investment/dados, /api/investment/recomendacoes",
-            "admin": "/api/admin/solicitacoes, /api/admin/acessos (protegido)",
-            "debug": "/api/debug/env (protegido)"
-        }
+        "environment": settings.ENVIRONMENT
     }
 
 @app.get("/api")
