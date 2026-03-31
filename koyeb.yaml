@@ -23,15 +23,19 @@ services:
       - name: DEBUG
         value: "false"
       
-      # Admin
+      # Admin credentials
       - name: ADMIN_USER
         value: admin
-      - name: ADMIN_PASS
-        secret: admin_pass
+      - name: ADMIN_PASSWORD
+        secret: admin_password
       
       # API Keys
       - name: FIXER_API_KEY
         secret: fixer_api_key
+      
+      # URL da API
+      - name: API_URL
+        value: https://electric-ki-investone-9623b27e.koyeb.app
       
       # Email
       - name: EMAIL_REMETENTE

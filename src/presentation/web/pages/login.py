@@ -11,7 +11,7 @@ load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # Tenta carregar a senha de diferentes nomes de variável
-ADMIN_PASSWORD = os.getenv("ADMIN_PASS")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
 
 def verificar_senha_admin(senha: str) -> bool:
     """Verifica se a senha do admin está correta"""
