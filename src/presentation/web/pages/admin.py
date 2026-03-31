@@ -53,7 +53,7 @@ def render():
     
     # Credenciais para API (tentar ambos os nomes de variável)
     admin_user = os.getenv("ADMIN_USER", "admin")
-    admin_pass = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
+    admin_pass = os.getenv("ADMIN_PASSWORD") 
     auth = (admin_user, admin_pass)
     
     if menu == "📊 Visão Geral":
