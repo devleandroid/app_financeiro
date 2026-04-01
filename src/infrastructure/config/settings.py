@@ -1,7 +1,11 @@
 """Configurações da aplicação"""
 import os
+import logging
 from dotenv import load_dotenv
 from pathlib import Path
+
+# Configurar logger básico
+logger = logging.getLogger(__name__)
 
 # Carregar variáveis de ambiente
 env_path = Path(__file__).parent.parent.parent.parent / '.env'
