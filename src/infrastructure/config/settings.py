@@ -33,7 +33,7 @@ class Settings:
     # Admin - usa a variável correta do Koyeb
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
     # Lê ADMIN_PASSWORD primeiro (Koyeb), depois ADMIN_PASS (local)
-    ADMIN_PASS = os.getenv("ADMIN_PASSWORD", "") or os.getenv("ADMIN_PASS", "") or "admin123"
+    ADMIN_PASS = os.getenv("ADMIN_PASSWORD", "") or os.getenv("ADMIN_PASS", "") # or "admin123"
     
     # APIs externas
     FIXER_API_KEY = os.getenv("FIXER_API_KEY", "")
