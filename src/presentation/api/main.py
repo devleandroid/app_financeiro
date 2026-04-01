@@ -74,7 +74,8 @@ async def startup_event():
     logger.info("🚀 API iniciada com sucesso!")
     logger.info(f"🌍 Ambiente: {settings.ENVIRONMENT}")
     logger.info(f"👤 Admin User: {settings.ADMIN_USER}")
-    logger.info(f"🔑 Admin Pass: {'*' * len(settings.ADMIN_PASS)}")
+    # Apenas mostrar que está configurada, não o valor
+    logger.info(f"🔑 Admin Pass: {'✅ Configurada' if settings.ADMIN_PASS else '❌ NÃO CONFIGURADA'}")
     logger.info(f"🔧 Debug: {settings.DEBUG}")
 
 @app.on_event("shutdown")
