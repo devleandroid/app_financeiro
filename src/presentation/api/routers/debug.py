@@ -1,18 +1,21 @@
 """Endpoint de debug para verificar variáveis de ambiente"""
 from fastapi import APIRouter, Depends, HTTPException
 import os
-import secrets
+import logging
 
 router = APIRouter(prefix="/debug", tags=["debug"])
+logger = logging.getLogger(__name__)
 
-# Autenticação básica para debug
+# Autenticação básica para debug (protegido)
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
+
 security = HTTPBasic()
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     """Verifica credenciais do admin"""
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    ADMIN_PASS = os.getenv("ADMIN_PASSWORD") or "admin123"
+    ADMIN_PASS = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
     
     correct_username = secrets.compare_digest(credentials.username, ADMIN_USER)
     correct_password = secrets.compare_digest(credentials.password, ADMIN_PASS)
@@ -29,15 +32,25 @@ async def get_env_vars(admin: str = Depends(verify_admin)):
         "ADMIN_PASSWORD": "✅ Configurado" if os.getenv("ADMIN_PASSWORD") else "❌ Não configurado",
         "ADMIN_PASS": "✅ Configurado" if os.getenv("ADMIN_PASS") else "❌ Não configurado",
         "ENVIRONMENT": os.getenv("ENVIRONMENT", "NÃO CONFIGURADO"),
-        "FIXER_API_KEY": "✅ Configurado" if os.getenv("FIXER_API_KEY") else "❌ Não configurado",
-        "EMAIL_REMETENTE": "✅ Configurado" if os.getenv("EMAIL_REMETENTE") else "⚠️ Opcional",
+        "API_URL": os.getenv("API_URL", "NÃO CONFIGURADO"),
+        "KOYEB_PUBLIC_DOMAIN": os.getenv("KOYEB_PUBLIC_DOMAIN", "N/A"),
+        "PORT": os.getenv("PORT", "N/A"),
     }
+    
+    # Log apenas para debug
+    logger.info(f"Debug endpoint acessado por {admin}")
+    
     return {
         "status": "ok",
         "service": "investsmart-backend",
-        "variaveis": vars_status,
-        "raw": {
-            "ADMIN_USER": os.getenv("ADMIN_USER"),
-            "ADMIN_PASSWORD": "***" if os.getenv("ADMIN_PASSWORD") else None,
-        }
+        "variaveis": vars_status
+    }
+
+@router.get("/simple")
+async def simple_debug():
+    """Endpoint simples sem autenticação (apenas informações não sensíveis)"""
+    return {
+        "status": "ok",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "koyeb_domain": os.getenv("KOYEB_PUBLIC_DOMAIN", "N/A"),
     }
