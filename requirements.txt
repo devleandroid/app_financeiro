@@ -16,7 +16,3 @@ numpy
 # External APIs
 requests
 httpx
-
-# Testing (opcional)
-pytest
-pytest-asyncio
