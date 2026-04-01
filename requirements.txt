@@ -5,8 +5,7 @@ pydantic
 python-dotenv
 
 # Database
-asyncpg
-sqlalchemy
+sqlite3
 
 # Frontend
 streamlit
@@ -18,6 +17,6 @@ numpy
 requests
 httpx
 
-# Testing
+# Testing (opcional)
 pytest
 pytest-asyncio
