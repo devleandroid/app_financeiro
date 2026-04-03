@@ -1,7 +1,7 @@
 # Rotas administrativas (protegidas)"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from src.infrastructure.auth.admin_auth import verificar_admin
-from src.infrastructure.database.admin_repository import admin_repo
+from src.infrastructure.database.unified_repository import admin_repo
 import logging
 from datetime import datetime
 

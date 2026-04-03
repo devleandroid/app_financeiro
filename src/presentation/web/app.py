@@ -2,13 +2,27 @@
 import sys
 import os
 from pathlib import Path
+import streamlit as st
 
 # Adicionar o diretório raiz ao PYTHONPATH
 root_dir = Path(__file__).parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
-    
-import streamlit as st
+try:
+    API_URL = st.secrets.get("API_URL", os.getenv("API_URL", "http://localhost:8000"))
+except:
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+# Forçar a leitura do Secret
+try:
+    api_url = st.secrets["API_URL"]
+    st.success(f"✅ Secret carregado: {api_url}")
+except Exception as e:
+    st.error(f"❌ Secret não encontrado: {e}")
+    api_url = "http://localhost:8000"
+
+# Sobrescrever a variável de ambiente
+os.environ["API_URL"] = api_url
+
 from src.presentation.web.pages import render as render_pagina
 
 # Configuração da página

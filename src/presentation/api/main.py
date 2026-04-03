@@ -1,4 +1,4 @@
-# Ponto de entrada da API FastAPI"""
+"""Ponto de entrada da API FastAPI"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -10,12 +10,16 @@ from src.infrastructure.config.logging import setup_logging
 from src.presentation.api.routers import public
 from src.presentation.api.routers import admin
 from src.presentation.api.routers import investment
+from src.presentation.api.routers import debug
+from src.presentation.api.routers import health
 
 # Configurar logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# Criar app FastAPI
+# ============================================
+# CRIAR APP FASTAPI
+# ============================================
 app = FastAPI(
     title=settings.APP_NAME,
     description="API para análise de investimentos",
@@ -23,7 +27,9 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# Configurar CORS
+# ============================================
+# CONFIGURAR CORS
+# ============================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -32,11 +38,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers - TODOS os endpoints estarão disponíveis
+# ============================================
+# INCLUIR ROUTERS
+# ============================================
+app.include_router(health.router, prefix="/api")
 app.include_router(public.router, prefix="/api")
 app.include_router(investment.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(debug.router, prefix="/api")
 
+# ============================================
+# ENDPOINTS BÁSICOS
+# ============================================
 @app.get("/")
 async def root():
     """Rota raiz"""
@@ -44,11 +57,7 @@ async def root():
         "app": settings.APP_NAME,
         "version": settings.VERSION,
         "status": "online",
-        "endpoints": {
-            "public": "/api/health, /api/ping, /api/solicitar-chave, /api/validar-chave",
-            "investment": "/api/investment/dados, /api/investment/recomendacoes",
-            "admin": "/api/admin/solicitacoes, /api/admin/acessos (protegido)"
-        }
+        "environment": settings.ENVIRONMENT
     }
 
 @app.get("/api")
@@ -63,6 +72,11 @@ async def api_root():
 @app.on_event("startup")
 async def startup_event():
     logger.info("🚀 API iniciada com sucesso!")
+    logger.info(f"🌍 Ambiente: {settings.ENVIRONMENT}")
+    logger.info(f"👤 Admin User: {settings.ADMIN_USER}")
+    # Apenas mostrar que está configurada, não o valor
+    logger.info(f"🔑 Admin Pass: {'✅ Configurada' if settings.ADMIN_PASS else '❌ NÃO CONFIGURADA'}")
+    logger.info(f"🔧 Debug: {settings.DEBUG}")
 
 @app.on_event("shutdown")
 async def shutdown_event():

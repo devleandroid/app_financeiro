@@ -1,37 +1,36 @@
-# Repositório para dados administrativos"""
+"""Repositório unificado para dados administrativos"""
 import sqlite3
-import pandas as pd
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
-class AdminRepository:
-    """Repositório para consultas administrativas"""
+class UnifiedAdminRepository:
+    """Repositório unificado que usa a tabela access_keys"""
     
     def __init__(self, db_path: str = "acessos.db"):
         self.db_path = db_path
         self._init_db()
     
     def _init_db(self):
-        """Inicializa as tabelas necessárias"""
+        """Garante que a tabela access_keys existe"""
         with sqlite3.connect(self.db_path) as conn:
-            # Tabela de solicitações de chave
+            # Garantir que a tabela access_keys existe
             conn.execute('''
-                CREATE TABLE IF NOT EXISTS solicitacoes (
+                CREATE TABLE IF NOT EXISTS access_keys (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT NOT NULL,
-                    chave TEXT UNIQUE NOT NULL,
-                    data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    data_expiracao TIMESTAMP NOT NULL,
-                    status TEXT DEFAULT 'pendente',
+                    key TEXT UNIQUE NOT NULL,
+                    created_at TIMESTAMP NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT 0,
                     ip TEXT,
                     user_agent TEXT
                 )
             ''')
             
-            # Tabela de acessos
+            # Criar tabela de acessos se não existir
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS acessos (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,48 +38,48 @@ class AdminRepository:
                     chave_utilizada TEXT,
                     data_acesso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     ip TEXT,
-                    user_agent TEXT,
-                    sucesso BOOLEAN DEFAULT 1
+                    user_agent TEXT
                 )
             ''')
             
             # Índices
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_solicitacoes_email ON solicitacoes(email)')
-            conn.execute('CREATE INDEX IF NOT EXISTS idx_solicitacoes_data ON solicitacoes(data_solicitacao)')
+            conn.execute('CREATE INDEX IF NOT EXISTS idx_access_keys_email ON access_keys(email)')
+            conn.execute('CREATE INDEX IF NOT EXISTS idx_access_keys_created ON access_keys(created_at)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_acessos_email ON acessos(email)')
             
-            logger.info("✅ Tabelas administrativas criadas/verificadas")
+            logger.info("✅ Tabelas unificadas verificadas")
     
     def get_solicitacoes(self, limite: int = 100, offset: int = 0) -> List[Dict]:
-        """Retorna solicitações de chave reais"""
+        """Retorna solicitações de chave da tabela access_keys"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute('''
                 SELECT 
                     id,
                     email,
-                    chave,
-                    data_solicitacao,
-                    data_expiracao,
-                    status,
+                    key as chave,
+                    created_at as data_solicitacao,
+                    expires_at as data_expiracao,
+                    used as usado,
                     ip,
+                    user_agent,
                     CASE 
-                        WHEN datetime(data_expiracao) < datetime('now') THEN 'expirada'
-                        WHEN status = 'usada' THEN 'usada'
+                        WHEN used = 1 THEN 'usada'
+                        WHEN datetime(expires_at) < datetime('now') THEN 'expirada'
                         ELSE 'ativa'
-                    END as status_atual,
+                    END as status,
                     CASE 
-                        WHEN status = 'usada' THEN '✅ Usada'
-                        WHEN datetime(data_expiracao) < datetime('now') THEN '⏰ Expirada'
+                        WHEN used = 1 THEN '✅ Usada'
+                        WHEN datetime(expires_at) < datetime('now') THEN '⏰ Expirada'
                         ELSE '🕐 Ativa'
                     END as status_icone
-                FROM solicitacoes
-                ORDER BY data_solicitacao DESC
+                FROM access_keys
+                ORDER BY created_at DESC
                 LIMIT ? OFFSET ?
             ''', (limite, offset))
             
             results = [dict(row) for row in cursor.fetchall()]
-            logger.info(f"📋 Encontradas {len(results)} solicitações")
+            logger.info(f"📋 Encontradas {len(results)} solicitações na tabela access_keys")
             return results
     
     def get_acessos(self, limite: int = 100, offset: int = 0) -> List[Dict]:
@@ -95,9 +94,9 @@ class AdminRepository:
                     a.data_acesso,
                     a.ip,
                     a.user_agent,
-                    s.data_solicitacao as chave_gerada_em
+                    ak.created_at as chave_gerada_em
                 FROM acessos a
-                LEFT JOIN solicitacoes s ON a.chave_utilizada = s.chave
+                LEFT JOIN access_keys ak ON a.chave_utilizada = ak.key
                 ORDER BY a.data_acesso DESC
                 LIMIT ? OFFSET ?
             ''', (limite, offset))
@@ -108,12 +107,12 @@ class AdminRepository:
         """Retorna estatísticas reais do sistema"""
         with sqlite3.connect(self.db_path) as conn:
             # Total de solicitações
-            total_solicitacoes = conn.execute('SELECT COUNT(*) FROM solicitacoes').fetchone()[0]
+            total_solicitacoes = conn.execute('SELECT COUNT(*) FROM access_keys').fetchone()[0]
             
             # Solicitações hoje
             hoje = datetime.now().strftime('%Y-%m-%d')
             solicitacoes_hoje = conn.execute(
-                'SELECT COUNT(*) FROM solicitacoes WHERE date(data_solicitacao) = ?',
+                'SELECT COUNT(*) FROM access_keys WHERE date(created_at) = ?',
                 (hoje,)
             ).fetchone()[0]
             
@@ -127,25 +126,25 @@ class AdminRepository:
             ).fetchone()[0]
             
             # Emails únicos
-            emails_unicos = conn.execute('SELECT COUNT(DISTINCT email) FROM solicitacoes').fetchone()[0]
+            emails_unicos = conn.execute('SELECT COUNT(DISTINCT email) FROM access_keys').fetchone()[0]
             
-            # Taxa de conversão
+            # Taxa de conversão (solicitações que viraram acesso)
             conversao = conn.execute('''
                 SELECT 
-                    COUNT(DISTINCT a.email) * 100.0 / COUNT(DISTINCT s.email)
-                FROM solicitacoes s
-                LEFT JOIN acessos a ON s.email = a.email
+                    COUNT(DISTINCT a.email) * 100.0 / COUNT(DISTINCT ak.email)
+                FROM access_keys ak
+                LEFT JOIN acessos a ON ak.email = a.email
             ''').fetchone()[0] or 0
             
             # Solicitações por dia (últimos 7 dias)
             sete_dias_atras = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
             solicitacoes_por_dia = conn.execute('''
                 SELECT 
-                    date(data_solicitacao) as dia,
+                    date(created_at) as dia,
                     COUNT(*) as total
-                FROM solicitacoes
-                WHERE date(data_solicitacao) >= ?
-                GROUP BY date(data_solicitacao)
+                FROM access_keys
+                WHERE date(created_at) >= ?
+                GROUP BY date(created_at)
                 ORDER BY dia DESC
             ''', (sete_dias_atras,)).fetchall()
             
@@ -169,10 +168,10 @@ class AdminRepository:
                 SELECT 
                     'solicitacao' as tipo,
                     email,
-                    data_solicitacao as data,
-                    chave as identificador,
-                    status
-                FROM solicitacoes
+                    created_at as data,
+                    key as identificador,
+                    CASE WHEN used = 1 THEN 'usada' ELSE 'pendente' END as status
+                FROM access_keys
                 
                 UNION ALL
                 
@@ -191,4 +190,4 @@ class AdminRepository:
             return [dict(row) for row in cursor.fetchall()]
 
 # Instância global
-admin_repo = AdminRepository()
+admin_repo = UnifiedAdminRepository()

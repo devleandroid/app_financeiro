@@ -1,7 +1,11 @@
 """Configurações da aplicação"""
 import os
+import logging
 from dotenv import load_dotenv
 from pathlib import Path
+
+# Configurar logger básico
+logger = logging.getLogger(__name__)
 
 # Carregar variáveis de ambiente
 env_path = Path(__file__).parent.parent.parent.parent / '.env'
@@ -26,6 +30,8 @@ class Settings:
         "http://localhost:8502",
         "http://127.0.0.1:8501",
         "http://127.0.0.1:8502",
+        "https://*.streamlit.app",
+        "https://*.koyeb.app"
     ]
     
     # Adicionar origens extras via variável de ambiente (separadas por vírgula)
@@ -35,10 +41,35 @@ class Settings:
     
     # Admin
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
+    # Lê ADMIN_PASSWORD primeiro (Koyeb), depois ADMIN_PASS (local)
+    admin_password_env = os.getenv("ADMIN_PASSWORD", "")
+    admin_pass_env = os.getenv("ADMIN_PASS", "")
+
+    # LOG CRÍTICO PARA DEBUG
+    logger.info("=" * 50)
+    logger.info("🔍 DEBUG DE CONFIGURAÇÃO DO ADMIN")
+    logger.info("=" * 50)
+    logger.info(f"ADMIN_PASSWORD from env: '{admin_password_env}'")
+    logger.info(f"ADMIN_PASS from env: '{admin_pass_env}'")
+    logger.info(f"ADMIN_USER from env: '{ADMIN_USER}'")
+    
+    # Definir a senha final
+    if admin_password_env:
+        ADMIN_PASS = admin_password_env
+        logger.info(f"✅ Usando ADMIN_PASSWORD: '{admin_password_env[:4]}***'")
+    elif admin_pass_env:
+        ADMIN_PASS = admin_pass_env
+        logger.info(f"✅ Usando ADMIN_PASS: '{admin_pass_env[:4]}***'")
+    else:
+        ADMIN_PASS = ""  # Sem fallback
+        logger.warning("⚠️ NENHUMA SENHA CONFIGURADA! Painel admin não acessível.")
+    
+    logger.info(f"ADMIN_PASS final: {'*' * len(ADMIN_PASS) if ADMIN_PASS else 'VAZIO'}")
+    logger.info("=" * 50)
     
     # APIs externas
     FIXER_API_KEY = os.getenv("FIXER_API_KEY", "")
+    CURRENCY_API_KEY = os.getenv("CURRENCY_API_KEY", "")
     
     # Email
     EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE", "")
@@ -48,6 +79,14 @@ class Settings:
     
     # Banco de dados
     DATABASE_URL = os.getenv("DATABASE_URL", "acessos.db")
+    
+    @property
+    def is_development(self):
+        return self.ENVIRONMENT == "development"
+    
+    @property
+    def is_production(self):
+        return self.ENVIRONMENT == "production"
 
 # Instância global
 settings = Settings()

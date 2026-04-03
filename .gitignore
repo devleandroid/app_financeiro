@@ -8,17 +8,22 @@ env/
 venv/
 .env
 .venv
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Database
 *.db
 *.sqlite3
 *.sqlite
+*.db-journal
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
@@ -28,15 +33,16 @@ Thumbs.db
 logs/
 *.log
 
-# Testes
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Docker
-*.tar
-
 # Project specific
 result
 *.bak
 *.backup
+.archives/
+acessos.db
+acessos.db.backup
+
+# Secrets
+.streamlit/secrets.toml
+
+ssh-key-2026-03-18.key
+ssh-key-2026-03-18.key.pub
