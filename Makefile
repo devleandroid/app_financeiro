@@ -17,10 +17,7 @@ run-backend:
 	PYTHONPATH=. uvicorn src.presentation.api.main:app --reload --port 8000
 
 run-frontend:
-	PYTHONPATH=. streamlit run src/presentation/web/app.py --server.port 8501
-
-run-admin:
-	PYTHONPATH=. streamlit run src/presentation/web/pages/admin.py --server.port 8502
+	PYTHONPATH=. streamlit run src/presentation/web/app.py --server.port 8501 --server.headless true
 
 test:
 	pytest tests/ -v

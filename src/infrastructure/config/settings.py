@@ -34,7 +34,12 @@ class Settings:
         "https://*.koyeb.app"
     ]
     
-    # Admin - usa a variável correta do Koyeb
+    # Adicionar origens extras via variável de ambiente (separadas por vírgula)
+    _extra_origins = os.getenv("CORS_EXTRA_ORIGINS", "")
+    if _extra_origins:
+        CORS_ORIGINS.extend([o.strip() for o in _extra_origins.split(",") if o.strip()])
+    
+    # Admin
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
     # Lê ADMIN_PASSWORD primeiro (Koyeb), depois ADMIN_PASS (local)
     admin_password_env = os.getenv("ADMIN_PASSWORD", "")
