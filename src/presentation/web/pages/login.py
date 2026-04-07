@@ -3,16 +3,10 @@ import streamlit as st
 import requests
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 
-# Carregar variáveis do .env (apenas desenvolvimento)
-load_dotenv(override=True)
-
+# Não usar dotenv - usar apenas variáveis de ambiente do sistema
 API_URL = os.getenv("API_URL", "http://localhost:8000")
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-
-# Tenta carregar a senha de diferentes nomes de variável
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or None
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
 
 def verificar_senha_admin(senha: str) -> bool:
     """Verifica se a senha do admin está correta"""
