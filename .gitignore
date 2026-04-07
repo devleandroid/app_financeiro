@@ -46,3 +46,24 @@ acessos.db.backup
 
 ssh-key-2026-03-18.key
 ssh-key-2026-03-18.key.pub
+acessos.db
+*.log
+*.bak
+*.backup
+*.tar.gz
+ssh-key-*.key
+ssh-key-*.key.pub
+acessos.db
+
+# Arquivos temporários e de backup
+*.tar.gz
+*.log
+*.bak
+*.backup
+*.db
+*.db-journal
+ssh-key-*.key
+ssh-key-*.key.pub
+
+# Scripts antigos (opcional)
+scripts/old/
