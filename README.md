@@ -40,10 +40,10 @@ cp .env.example .env
 # Edite .env com suas chaves (opcional)
 
 # 4. Inicie o backend (terminal 1)
-make run-backend
+./scripts/run.sh backend
 
 # 5. Inicie o frontend (terminal 2)
-make run-frontend
+./scripts/run.sh frontend
 ```
 
 O backend estara disponivel em `http://localhost:8000` (docs em `/docs`).
