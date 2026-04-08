@@ -1,8 +1,10 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
 *.so
 .Python
+# Environment
 env/
 venv/
 .env
@@ -45,3 +47,9 @@ acessos.db.backup
 # SSH Keys
 ssh-key-*.key
 ssh-key-*.key.pub
+
+# Arquivos temporários de editores
+*~
+*.bak
+*.swp
+*.swo
