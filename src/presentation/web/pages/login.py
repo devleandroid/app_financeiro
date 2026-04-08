@@ -4,14 +4,30 @@ import requests
 import os
 from datetime import datetime
 
-# Não usar dotenv - usar apenas variáveis de ambiente do sistema
-API_URL = os.getenv("API_URL", "http://localhost:8000")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") or "admin123"
+# Carregar variáveis do arquivo .env manualmente
+env_file = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env')
+if os.path.exists(env_file):
+    with open(env_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key.strip()] = value.strip()
 
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+ADMIN_PASS = os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD") or "admin123"
+
+# ============================================
+# FUNÇÃO DE VERIFICAÇÃO (DEFINIDA ANTES DE USAR)
+# ============================================
 def verificar_senha_admin(senha: str) -> bool:
     """Verifica se a senha do admin está correta"""
-    return senha == ADMIN_PASSWORD
+    return senha == ADMIN_PASS
 
+# ============================================
+# FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO
+# ============================================
 def render():
     """Renderiza a página de login"""
     st.title("💰 InvestSmart")
@@ -29,7 +45,9 @@ def render():
     if st.session_state.get('authenticated'):
         return
     
+    # Informações de debug
     st.caption(f"🔗 API: {API_URL}")
+    st.caption(f"🔧 ADMIN_PASS configurada: {'✅ Sim' if ADMIN_PASS != 'admin123' else '⚠️ Usando padrão'}")
     
     # Três abas
     tab1, tab2, tab3 = st.tabs(["👤 Solicitar Acesso", "🔓 Já tenho chave", "⚡ Administrador"])
@@ -85,7 +103,7 @@ def render():
                             if dados.get("sucesso"):
                                 email_usuario = dados.get("email")
                                 st.session_state.authenticated = True
-                                st.session_state.user_email = email_usuario
+                                st.session_state.user_email = dados.get("email")
                                 st.session_state.chave_atual = chave_input.upper()
                                 st.session_state.chave_expiracao = dados.get("expira_em")
                                 st.success(dados.get("mensagem"))
@@ -122,6 +140,7 @@ def render():
                     st.rerun()
                 else:
                     st.error("❌ Senha incorreta!")
+                    st.caption(f"🔧 Debug: Digitado = '{senha_admin}', Esperado = '{ADMIN_PASS}'")
             else:
                 st.warning("Digite a senha")
         
