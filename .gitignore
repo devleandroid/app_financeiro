@@ -16,6 +16,7 @@ htmlcov/
 *.sqlite3
 *.sqlite
 *.db-journal
+acessos.db
 
 # IDE
 .vscode/
