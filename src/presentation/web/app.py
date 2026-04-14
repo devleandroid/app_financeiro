@@ -8,20 +8,14 @@ import streamlit as st
 root_dir = Path(__file__).parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
+
+# Configurar URL da API
 try:
     API_URL = st.secrets.get("API_URL", os.getenv("API_URL", "http://localhost:8000"))
 except:
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-# Forçar a leitura do Secret
-try:
-    api_url = st.secrets["API_URL"]
-    st.success(f"✅ Secret carregado: {api_url}")
-except Exception as e:
-    st.error(f"❌ Secret não encontrado: {e}")
-    api_url = "http://localhost:8000"
 
-# Sobrescrever a variável de ambiente
-os.environ["API_URL"] = api_url
+os.environ["API_URL"] = API_URL
 
 from src.presentation.web.pages import render as render_pagina
 
@@ -29,40 +23,59 @@ from src.presentation.web.pages import render as render_pagina
 st.set_page_config(
     page_title="InvestSmart",
     page_icon="💰",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# CSS global mínimo
+# CSS personalizado
 st.markdown("""
 <style>
-    /* Garantir que o menu lateral inicie recolhido */
-    section[data-testid="stSidebar"] {
-        width: 0 !important;
-        opacity: 0;
-        transition: width 0.3s ease, opacity 0.3s ease;
+    /* Estilos gerais */
+    .stApp {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
-    /* Quando o usuário passar o mouse, expande suavemente */
-    section[data-testid="stSidebar"]:hover {
-        width: 21rem !important;
-        opacity: 1;
+    /* Títulos */
+    h1, h2, h3 {
+        color: #1e1e2f;
     }
     
-    /* Botão de expandir/recolher personalizado */
-    button[kind="header"] {
-        background: transparent !important;
-        border: none !important;
+    /* Botão primário */
+    .stButton button[kind="primary"] {
+        background: linear-gradient(135deg, #4361ee, #3f37c9);
+        border: none;
+        transition: transform 0.2s ease;
     }
-
-    /* Remover elementos desnecessários */
+    
+    .stButton button[kind="primary"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    }
+    
+    /* Expandir (passo a passo) */
+    .streamlit-expanderHeader {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    /* Métricas */
+    div[data-testid="stMetric"] {
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #e9ecef;
+    }
+    
+    /* Remover menu lateral */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Fonte */
-    .stApp {
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Container principal */
+    .main > div {
+        padding: 1rem 2rem;
     }
 </style>
 """, unsafe_allow_html=True)
