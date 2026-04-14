@@ -1,7 +1,7 @@
 # 📡 API Reference
 
 ## Base URL
-https://seu-backend.onrender.com/api
+https://electric-ki-investone-9623b27e.koyeb.app
 
 ## Endpoints
 
