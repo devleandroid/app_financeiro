@@ -18,7 +18,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 # ============================================
-# CRIAR APP FASTAPI (PRIMEIRO!)
+# CRIAR APP FASTAPI
 # ============================================
 app = FastAPI(
     title=settings.APP_NAME,
@@ -28,7 +28,7 @@ app = FastAPI(
 )
 
 # ============================================
-# ADICIONAR MIDDLEWARES (DEPOIS DO APP!)
+# ADICIONAR MIDDLEWARES
 # ============================================
 
 # Middleware de CORS
@@ -40,13 +40,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware de Rate Limiting (proteção contra força bruta)
-try:
-    from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
-    app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
-    logger.info("✅ Rate limiting middleware carregado")
-except ImportError as e:
-    logger.warning(f"⚠️ Rate limiting middleware não disponível: {e}")
+# Middleware de Rate Limiting (opcional - comentado se der problema)
+# try:
+#     from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
+#     app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
+#     logger.info("✅ Rate limiting middleware carregado")
+# except ImportError as e:
+#     logger.warning(f"⚠️ Rate limiting middleware não disponível: {e}")
 
 # ============================================
 # INCLUIR ROUTERS
