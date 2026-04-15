@@ -13,16 +13,12 @@ from src.presentation.api.routers import investment
 from src.presentation.api.routers import debug
 from src.presentation.api.routers import health
 
-# Adicionar middleware de rate limiting
-from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
-app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
-
 # Configurar logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
 # ============================================
-# CRIAR APP FASTAPI
+# CRIAR APP FASTAPI (PRIMEIRO!)
 # ============================================
 app = FastAPI(
     title=settings.APP_NAME,
@@ -32,8 +28,10 @@ app = FastAPI(
 )
 
 # ============================================
-# CONFIGURAR CORS
+# ADICIONAR MIDDLEWARES (DEPOIS DO APP!)
 # ============================================
+
+# Middleware de CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -41,6 +39,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Middleware de Rate Limiting (proteção contra força bruta)
+try:
+    from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
+    app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
+    logger.info("✅ Rate limiting middleware carregado")
+except ImportError as e:
+    logger.warning(f"⚠️ Rate limiting middleware não disponível: {e}")
 
 # ============================================
 # INCLUIR ROUTERS
@@ -73,13 +79,14 @@ async def api_root():
         "versao": settings.VERSION
     }
 
+# ============================================
+# EVENTOS DE STARTUP/SHUTDOWN
+# ============================================
 @app.on_event("startup")
 async def startup_event():
     logger.info("🚀 API iniciada com sucesso!")
     logger.info(f"🌍 Ambiente: {settings.ENVIRONMENT}")
     logger.info(f"👤 Admin User: {settings.ADMIN_USER}")
-    # Apenas mostrar que está configurada, não o valor
-    logger.info(f"🔑 Admin Pass: {'✅ Configurada' if settings.ADMIN_PASS else '❌ NÃO CONFIGURADA'}")
     logger.info(f"🔧 Debug: {settings.DEBUG}")
 
 @app.on_event("shutdown")
