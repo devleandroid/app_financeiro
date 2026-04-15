@@ -1,10 +1,11 @@
-"""Página de login responsiva"""
+"""Página de login responsiva com segurança"""
 import streamlit as st
 import requests
 import os
+import time
 from datetime import datetime
 
-# Carregar variáveis do arquivo .env manualmente
+# Carregar variáveis do arquivo .env
 env_file = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '.env')
 if os.path.exists(env_file):
     with open(env_file, 'r') as f:
@@ -18,19 +19,21 @@ if os.path.exists(env_file):
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 ADMIN_PASS = os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD") or "admin123"
 
+# Controle de tentativas (em memória)
+if 'admin_attempts' not in st.session_state:
+    st.session_state.admin_attempts = 0
+if 'admin_blocked_until' not in st.session_state:
+    st.session_state.admin_blocked_until = None
+
 def verificar_senha_admin(senha: str) -> bool:
     return senha == ADMIN_PASS
 
 def render():
-    # CSS adicional para mobile
     st.markdown("""
     <style>
-        /* Indicador visual de que há mais abas */
         .stTabs [data-baseweb="tab-list"] {
             position: relative;
         }
-        
-        /* Efeito de "deslize" para indicar mais conteúdo */
         @media (max-width: 768px) {
             .stTabs [data-baseweb="tab-list"]::after {
                 content: "← →";
@@ -42,8 +45,6 @@ def render():
                 opacity: 0.7;
             }
         }
-        
-        /* Indicador de toque */
         .tab-indicator {
             text-align: center;
             font-size: 0.7rem;
@@ -52,23 +53,25 @@ def render():
             margin-bottom: 10px;
             display: block;
         }
-        
         @media (min-width: 769px) {
-            .tab-indicator {
-                display: none;
-            }
+            .tab-indicator { display: none; }
+        }
+        .security-notice {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: #666;
+            text-align: center;
+            margin-top: 0.5rem;
         }
     </style>
     """, unsafe_allow_html=True)
     
     st.title("💰 InvestSmart")
-    
-    # Indicador para mobile
     st.markdown('<div class="tab-indicator">👆 Toque nas abas para navegar</div>', unsafe_allow_html=True)
-    
     st.markdown("---")
     
-    # Inicializar estado da sessão
     if 'chave_atual' not in st.session_state:
         st.session_state.chave_atual = None
     if 'chave_expiracao' not in st.session_state:
@@ -81,12 +84,8 @@ def render():
     
     st.caption(f"🔗 API: {API_URL}")
     
-    # QUATRO ABAS com emojis intuitivos
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📧 Solicitar", 
-        "🔑 Acessar", 
-        "⚙️ Admin",
-        "❓ Ajuda"
+        "📧 Solicitar", "🔑 Acessar", "⚙️ Admin", "❓ Ajuda"
     ])
     
     # ============================================
@@ -94,13 +93,7 @@ def render():
     # ============================================
     with tab1:
         st.markdown("### ✉️ Solicitar chave")
-        st.markdown("Receba uma chave de **8 dígitos** por email.")
-        
-        email_input = st.text_input(
-            "📧 Seu email", 
-            placeholder="seu@email.com", 
-            key="solicitar_email"
-        )
+        email_input = st.text_input("📧 Seu email", placeholder="seu@email.com", key="solicitar_email")
         
         if st.button("📨 Enviar chave", use_container_width=True, type="primary"):
             if email_input and '@' in email_input and '.' in email_input:
@@ -125,7 +118,6 @@ def render():
                         st.error(f"❌ Erro de conexão: {e}")
             else:
                 st.warning("⚠️ Digite um email válido")
-        
         st.caption("💡 A chave chega em minutos e vale por 4 horas")
     
     # ============================================
@@ -133,14 +125,7 @@ def render():
     # ============================================
     with tab2:
         st.markdown("### 🔐 Entrar no sistema")
-        st.markdown("Digite a chave que você recebeu por email.")
-        
-        chave_input = st.text_input(
-            "Chave de 8 dígitos", 
-            placeholder="Ex: ABCD1234", 
-            max_chars=8, 
-            key="chave_acesso"
-        )
+        chave_input = st.text_input("Chave de 8 dígitos", placeholder="Ex: ABCD1234", max_chars=8, key="chave_acesso")
         
         if st.button("🚪 Entrar", use_container_width=True, type="primary"):
             if chave_input and len(chave_input) == 8:
@@ -168,36 +153,66 @@ def render():
                         st.error(f"❌ Erro: {e}")
             else:
                 st.warning("⚠️ Digite uma chave de 8 caracteres")
-        
         st.caption("💡 A chave funciona por 4 horas e pode ser reutilizada")
     
     # ============================================
-    # ABA 3: Administrador
+    # ABA 3: Administrador (COM PROTEÇÃO)
     # ============================================
     with tab3:
         st.markdown("### 🔒 Área Administrativa")
-        st.markdown("Acesso restrito.")
+        st.markdown("Acesso restrito - apenas administradores autorizados.")
         
-        senha_admin = st.text_input(
-            "Senha", 
-            type="password", 
-            placeholder="Digite a senha", 
-            key="admin_password"
-        )
+        # Verificar se está bloqueado
+        if st.session_state.admin_blocked_until:
+            if time.time() < st.session_state.admin_blocked_until:
+                remaining = int(st.session_state.admin_blocked_until - time.time())
+                st.error(f"🔒 Muitas tentativas incorretas. Aguarde {remaining} segundos.")
+                st.warning("⚠️ Tentativas repetidas serão registradas para segurança.")
+                return
+            else:
+                # Resetar bloqueio
+                st.session_state.admin_blocked_until = None
+                st.session_state.admin_attempts = 0
         
-        if st.button("🔓 Entrar", use_container_width=True, type="primary"):
+        senha_admin = st.text_input("Senha de Administrador", type="password", placeholder="Digite a senha", key="admin_password")
+        
+        # Mostrar tentativas restantes
+        if st.session_state.admin_attempts > 0:
+            remaining = 5 - st.session_state.admin_attempts
+            st.warning(f"⚠️ Tentativas restantes: {remaining}")
+        
+        if st.button("🔓 Entrar no Painel Admin", use_container_width=True, type="primary"):
             if senha_admin:
                 if verificar_senha_admin(senha_admin):
+                    # Login bem-sucedido - resetar contador
+                    st.session_state.admin_attempts = 0
                     st.session_state.admin_logado = True
                     st.session_state.admin_user = "admin"
-                    st.success("✅ Login realizado!")
+                    st.success("✅ Login realizado! Redirecionando...")
                     st.rerun()
                 else:
-                    st.error("❌ Senha incorreta!")
+                    # Login falhou - incrementar contador
+                    st.session_state.admin_attempts += 1
+                    
+                    # Bloquear após 5 tentativas
+                    if st.session_state.admin_attempts >= 5:
+                        st.session_state.admin_blocked_until = time.time() + 300  # 5 minutos
+                        st.error("🔒 Número máximo de tentativas excedido. Aguarde 5 minutos.")
+                        st.warning("⚠️ Esta tentativa foi registrada para fins de segurança.")
+                    else:
+                        st.error(f"❌ Senha incorreta! Tentativa {st.session_state.admin_attempts} de 5.")
             else:
                 st.warning("⚠️ Digite a senha")
         
-        st.caption("🔒 Apenas administradores autorizados")
+        # Aviso de segurança
+        st.markdown("""
+        <div class="security-notice">
+        🔒 <strong>Segurança</strong><br>
+        • Todas as tentativas de acesso são registradas<br>
+        • Após 5 tentativas falhas, acesso bloqueado por 5 minutos<br>
+        • Nunca compartilhe suas credenciais
+        </div>
+        """, unsafe_allow_html=True)
     
     # ============================================
     # ABA 4: Ajuda
