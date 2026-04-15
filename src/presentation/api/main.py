@@ -13,6 +13,10 @@ from src.presentation.api.routers import investment
 from src.presentation.api.routers import debug
 from src.presentation.api.routers import health
 
+# Adicionar middleware de rate limiting
+from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
+
 # Configurar logging
 setup_logging()
 logger = logging.getLogger(__name__)
