@@ -1,4 +1,4 @@
-"""Página de login """
+"""Página de login responsiva"""
 import streamlit as st
 import requests
 import os
@@ -19,11 +19,53 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 ADMIN_PASS = os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD") or "admin123"
 
 def verificar_senha_admin(senha: str) -> bool:
-    """Verifica se a senha do admin está correta"""
     return senha == ADMIN_PASS
 
 def render():
+    # CSS adicional para mobile
+    st.markdown("""
+    <style>
+        /* Indicador visual de que há mais abas */
+        .stTabs [data-baseweb="tab-list"] {
+            position: relative;
+        }
+        
+        /* Efeito de "deslize" para indicar mais conteúdo */
+        @media (max-width: 768px) {
+            .stTabs [data-baseweb="tab-list"]::after {
+                content: "← →";
+                position: absolute;
+                right: 5px;
+                bottom: -20px;
+                font-size: 0.7rem;
+                color: #999;
+                opacity: 0.7;
+            }
+        }
+        
+        /* Indicador de toque */
+        .tab-indicator {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        @media (min-width: 769px) {
+            .tab-indicator {
+                display: none;
+            }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
     st.title("💰 InvestSmart")
+    
+    # Indicador para mobile
+    st.markdown('<div class="tab-indicator">👆 Toque nas abas para navegar</div>', unsafe_allow_html=True)
+    
     st.markdown("---")
     
     # Inicializar estado da sessão
@@ -39,20 +81,20 @@ def render():
     
     st.caption(f"🔗 API: {API_URL}")
     
-    # QUATRO ABAS
+    # QUATRO ABAS com emojis intuitivos
     tab1, tab2, tab3, tab4 = st.tabs([
-        "👤 Solicitar Acesso", 
-        "🔓 Já tenho chave", 
-        "⚡ Administrador",
-        "📖 Como Funciona"
+        "📧 Solicitar", 
+        "🔑 Acessar", 
+        "⚙️ Admin",
+        "❓ Ajuda"
     ])
     
     # ============================================
-    # ABA 1: Solicitar Acesso (simplificada)
+    # ABA 1: Solicitar Acesso
     # ============================================
     with tab1:
-        st.markdown("### ✉️ Solicitar chave de acesso")
-        st.markdown("Digite seu email para receber uma chave de **8 dígitos** válida por **4 horas**.")
+        st.markdown("### ✉️ Solicitar chave")
+        st.markdown("Receba uma chave de **8 dígitos** por email.")
         
         email_input = st.text_input(
             "📧 Seu email", 
@@ -60,230 +102,155 @@ def render():
             key="solicitar_email"
         )
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🔑 Enviar chave por email", use_container_width=True, type="primary"):
-                if email_input and '@' in email_input and '.' in email_input:
-                    with st.spinner("📧 Enviando..."):
-                        try:
-                            response = requests.post(
-                                f"{API_URL}/api/solicitar-chave",
-                                json={"email": email_input},
-                                timeout=10
-                            )
-                            if response.status_code == 200:
-                                dados = response.json()
-                                if dados.get("sucesso"):
-                                    st.success("✅ " + dados.get("mensagem", ""))
-                                    st.balloons()
-                                    st.info("📬 **Verifique seu email!** Não esqueça a pasta de spam.")
-                                else:
-                                    st.error("❌ " + dados.get("mensagem", "Erro ao enviar"))
+        if st.button("📨 Enviar chave", use_container_width=True, type="primary"):
+            if email_input and '@' in email_input and '.' in email_input:
+                with st.spinner("📧 Enviando..."):
+                    try:
+                        response = requests.post(
+                            f"{API_URL}/api/solicitar-chave",
+                            json={"email": email_input},
+                            timeout=10
+                        )
+                        if response.status_code == 200:
+                            dados = response.json()
+                            if dados.get("sucesso"):
+                                st.success("✅ " + dados.get("mensagem", ""))
+                                st.balloons()
+                                st.info("📬 Verifique seu email (incluindo spam)")
                             else:
-                                st.error(f"❌ Erro {response.status_code}")
-                        except Exception as e:
-                            st.error(f"❌ Erro de conexão: {e}")
-                else:
-                    st.warning("⚠️ Digite um email válido (ex: nome@dominio.com)")
+                                st.error("❌ " + dados.get("mensagem", "Erro"))
+                        else:
+                            st.error(f"❌ Erro {response.status_code}")
+                    except Exception as e:
+                        st.error(f"❌ Erro de conexão: {e}")
+            else:
+                st.warning("⚠️ Digite um email válido")
         
-        st.caption("💡 Após receber a chave, vá para a aba **'Já tenho chave'** para acessar o sistema.")
+        st.caption("💡 A chave chega em minutos e vale por 4 horas")
     
     # ============================================
-    # ABA 2: Usar chave já recebida
+    # ABA 2: Acessar com chave
     # ============================================
     with tab2:
-        st.markdown("### 🔐 Entrar com Chave de Acesso")
-        st.markdown("Digite a chave de **8 dígitos** que você recebeu por email.")
+        st.markdown("### 🔐 Entrar no sistema")
+        st.markdown("Digite a chave que você recebeu por email.")
         
         chave_input = st.text_input(
-            "Chave de acesso", 
+            "Chave de 8 dígitos", 
             placeholder="Ex: ABCD1234", 
             max_chars=8, 
             key="chave_acesso"
         )
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🚪 Entrar no Sistema", use_container_width=True, type="primary"):
-                if chave_input and len(chave_input) == 8:
-                    with st.spinner("🔍 Validando..."):
-                        try:
-                            response = requests.post(
-                                f"{API_URL}/api/validar-chave",
-                                json={"chave": chave_input.upper()},
-                                timeout=10
-                            )
-                            if response.status_code == 200:
-                                dados = response.json()
-                                if dados.get("sucesso"):
-                                    st.session_state.authenticated = True
-                                    st.session_state.user_email = dados.get("email")
-                                    st.session_state.chave_atual = chave_input.upper()
-                                    st.session_state.chave_expiracao = dados.get("expira_em")
-                                    st.success("✅ " + dados.get("mensagem"))
-                                    st.rerun()
-                                else:
-                                    st.error("❌ " + dados.get("mensagem", "Chave inválida"))
+        if st.button("🚪 Entrar", use_container_width=True, type="primary"):
+            if chave_input and len(chave_input) == 8:
+                with st.spinner("🔍 Validando..."):
+                    try:
+                        response = requests.post(
+                            f"{API_URL}/api/validar-chave",
+                            json={"chave": chave_input.upper()},
+                            timeout=10
+                        )
+                        if response.status_code == 200:
+                            dados = response.json()
+                            if dados.get("sucesso"):
+                                st.session_state.authenticated = True
+                                st.session_state.user_email = dados.get("email")
+                                st.session_state.chave_atual = chave_input.upper()
+                                st.session_state.chave_expiracao = dados.get("expira_em")
+                                st.success("✅ " + dados.get("mensagem"))
+                                st.rerun()
                             else:
-                                st.error(f"❌ Erro {response.status_code}")
-                        except Exception as e:
-                            st.error(f"❌ Erro de conexão: {e}")
-                else:
-                    st.warning("⚠️ Digite uma chave válida de 8 caracteres")
+                                st.error("❌ " + dados.get("mensagem", "Chave inválida"))
+                        else:
+                            st.error(f"❌ Erro {response.status_code}")
+                    except Exception as e:
+                        st.error(f"❌ Erro: {e}")
+            else:
+                st.warning("⚠️ Digite uma chave de 8 caracteres")
         
-        st.caption("💡 A chave é válida por **4 horas** e pode ser reutilizada várias vezes.")
+        st.caption("💡 A chave funciona por 4 horas e pode ser reutilizada")
     
     # ============================================
     # ABA 3: Administrador
     # ============================================
     with tab3:
         st.markdown("### 🔒 Área Administrativa")
-        st.markdown("Acesso restrito - apenas administradores do sistema.")
+        st.markdown("Acesso restrito.")
         
         senha_admin = st.text_input(
-            "Senha de Administrador", 
+            "Senha", 
             type="password", 
             placeholder="Digite a senha", 
             key="admin_password"
         )
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🔓 Entrar no Painel Admin", use_container_width=True, type="primary"):
-                if senha_admin:
-                    if verificar_senha_admin(senha_admin):
-                        st.session_state.admin_logado = True
-                        st.session_state.admin_user = "admin"
-                        st.success("✅ Login realizado! Redirecionando...")
-                        st.rerun()
-                    else:
-                        st.error("❌ Senha incorreta!")
+        if st.button("🔓 Entrar", use_container_width=True, type="primary"):
+            if senha_admin:
+                if verificar_senha_admin(senha_admin):
+                    st.session_state.admin_logado = True
+                    st.session_state.admin_user = "admin"
+                    st.success("✅ Login realizado!")
+                    st.rerun()
                 else:
-                    st.warning("⚠️ Digite a senha")
+                    st.error("❌ Senha incorreta!")
+            else:
+                st.warning("⚠️ Digite a senha")
         
-        st.markdown("---")
-        st.caption("🔒 Área restrita - apenas para administradores autorizados.")
+        st.caption("🔒 Apenas administradores autorizados")
     
     # ============================================
-    # ABA 4: Como Funciona (Guia Completo)
+    # ABA 4: Ajuda
     # ============================================
     with tab4:
-        st.markdown("## 📖 Guia do InvestSmart")
-        st.markdown("Tudo o que você precisa saber para usar a plataforma.")
+        st.markdown("### ❓ Como usar o InvestSmart")
         
-        # Seção 1: O que é
-        with st.expander("🎯 O que é o InvestSmart?", expanded=True):
+        with st.expander("📖 Passo a passo", expanded=True):
             st.markdown("""
-            O **InvestSmart** é uma plataforma de análise de investimentos que fornece:
+            **1️⃣ Solicitar chave**
+            - Digite seu email na aba **"Solicitar"**
+            - Clique em **"Enviar chave"**
+            - Aguarde o email (verifique o spam)
             
-            - 💱 **Cotações em tempo real** de moedas internacionais
-            - ₿ **Preço e tendência do Bitcoin**
-            - 📈 **Recomendações de investimento** baseadas em dados de mercado
-            - 🔐 **Acesso seguro** via chave temporária por email
+            **2️⃣ Acessar o sistema**
+            - Vá para a aba **"Acessar"**
+            - Digite a chave de 8 dígitos
+            - Clique em **"Entrar"**
+            
+            **3️⃣ Explorar o dashboard**
+            - Visualize cotações de moedas
+            - Acompanhe o preço do Bitcoin
+            - Veja recomendações de investimento
             """)
         
-        # Seção 2: Passo a passo
-        with st.expander("📋 Passo a Passo - Como acessar", expanded=True):
+        with st.expander("❓ Dúvidas frequentes", expanded=False):
             st.markdown("""
-            ### 🔐 Obter sua chave de acesso
-            
-            | Passo | Ação |
-            |-------|------|
-            | **1** | Digite seu **email** na aba *"Solicitar Acesso"* |
-            | **2** | Clique em **"Enviar chave por email"** |
-            | **3** | Verifique sua caixa de entrada (e o **spam**) |
-            | **4** | Copie a **chave de 8 dígitos** recebida |
-            | **5** | Vá para a aba *"Já tenho chave"* |
-            | **6** | Cole a chave e clique em **"Entrar"** |
-            
-            > ⏰ **Atenção:** A chave é válida por **4 horas** e pode ser reutilizada várias vezes neste período.
-            """)
-        
-        # Seção 3: Funcionalidades
-        with st.expander("📊 Funcionalidades do Dashboard", expanded=True):
-            st.markdown("""
-            Após o login, você terá acesso a:
-            
-            ### 💱 Câmbio em Tempo Real
-            - Cotações de moedas como **USD, BRL, EUR, GBP, JPY, CNY**
-            - Gráficos interativos e tabelas comparativas
-            - Variação percentual das moedas
-            
-            ### ₿ Bitcoin
-            - Preço atual do Bitcoin em Dólar (USD)
-            - Variação nas últimas 24 horas
-            - Fonte: **CoinGecko**
-            
-            ### 💡 Recomendações
-            - Sugestões de investimento baseadas em:
-              - Força/fracura do Real (BRL)
-              - Cotação do Euro (EUR)
-              - Preço do Bitcoin (BTC)
-              - Cenário econômico geral
-            """)
-        
-        # Seção 4: Dúvidas frequentes
-        with st.expander("❓ Dúvidas Frequentes", expanded=True):
-            st.markdown("""
-            **❌ Não recebi o email com a chave?**
-            > Verifique sua caixa de **spam** ou **lixo eletrônico**. Se ainda assim não encontrar, tente novamente com outro email ou aguarde alguns minutos.
-            
-            **⏰ Minha chave expirou?**
-            > As chaves têm validade de **4 horas**. Se expirou, solicite uma nova na aba *"Solicitar Acesso"*.
+            **⏰ Quanto tempo a chave é válida?**
+            > 4 horas a partir do envio.
             
             **🔄 Posso reutilizar a mesma chave?**
-            > Sim! A mesma chave funciona para múltiplos acessos dentro do período de 4 horas.
+            > Sim! Durante as 4 horas de validade.
             
-            **🔒 Esqueci minha chave?**
-            > Solicite uma nova chave. A chave anterior será substituída automaticamente.
+            **📧 Não recebi o email?**
+            > Verifique sua caixa de spam.
             
             **📊 Os dados são reais?**
-            > Sim! As cotações vêm da API **Fixer.io** (taxas de câmbio) e **CoinGecko** (Bitcoin). Em caso de indisponibilidade, usamos dados simulados.
-            
-            **🛡️ O sistema é seguro?**
-            > Sim! As chaves são geradas aleatoriamente, enviadas por email e expiram após 4 horas. O painel administrativo é protegido por senha.
+            > Sim, vêm da API Fixer.io e CoinGecko.
             """)
         
-        # Seção 5: Tecnologias
-        with st.expander("⚙️ Tecnologias Utilizadas", expanded=True):
-            st.markdown("""
-            | Componente | Tecnologia |
-            |------------|------------|
-            | **Backend** | FastAPI + Uvicorn |
-            | **Frontend** | Streamlit + Plotly |
-            | **Banco de Dados** | SQLite (local) / PostgreSQL (produção) |
-            | **APIs Externas** | Fixer.io (câmbio), CoinGecko (Bitcoin) |
-            | **Infraestrutura** | Docker, Koyeb, Streamlit Cloud |
-            """)
-        
-        # Seção 6: Suporte
-        with st.expander("📞 Suporte e Contato", expanded=True):
-            st.markdown("""
-            ### Precisa de ajuda?
-            
-            - 📧 **Email de suporte:** suporte@investsmart.com
-            - 📖 **Documentação completa:** [docs.investsmart.com](https://docs.investsmart.com)
-            - 💬 **Reportar problema:** Abra uma issue no [GitHub](https://github.com/devleandroid/app_financeiro/issues)
-            
-            ---
-            
-            *O InvestSmart é um projeto educacional. As recomendações não constituem aconselhamento financeiro profissional.*
-            """)
-        
-        # Rodapé da aba
         st.markdown("---")
         st.markdown(
-            "<p style='text-align: center; color: #666; font-size: 0.8rem;'>"
-            "© 2026 InvestSmart - Análise de Investimentos em Tempo Real"
+            "<p style='text-align: center; font-size: 0.8rem;'>"
+            "📧 Suporte: suporte@investsmart.com"
             "</p>", 
             unsafe_allow_html=True
         )
     
-    # Rodapé geral (aparece em todas as abas)
+    # Rodapé
     st.markdown("---")
     st.markdown(
         "<p style='text-align: center; color: #999; font-size: 0.7rem;'>"
-        "📊 Dados fornecidos por Fixer.io • ₿ Bitcoin via CoinGecko"
+        "📊 Dados: Fixer.io • ₿ Bitcoin: CoinGecko"
         "</p>", 
         unsafe_allow_html=True
     )
