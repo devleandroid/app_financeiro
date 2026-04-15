@@ -53,3 +53,6 @@ ssh-key-*.key.pub
 *.bak
 *.swp
 *.swo
+
+# Arquivo de SH teste local
+test_injection.sh
