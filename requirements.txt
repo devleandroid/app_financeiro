@@ -15,4 +15,4 @@ numpy
 
 # External APIs
 requests
-httpxpsycopg2-binary==2.9.9
+
