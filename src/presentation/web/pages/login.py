@@ -19,16 +19,24 @@ if os.path.exists(env_file):
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 ADMIN_PASS = os.getenv("ADMIN_PASS") or os.getenv("ADMIN_PASSWORD") or "admin123"
 
-# Controle de tentativas (em memória)
-if 'admin_attempts' not in st.session_state:
-    st.session_state.admin_attempts = 0
-if 'admin_blocked_until' not in st.session_state:
-    st.session_state.admin_blocked_until = None
-
 def verificar_senha_admin(senha: str) -> bool:
     return senha == ADMIN_PASS
 
+def inicializar_estado_admin():
+    """Inicializa todas as variáveis de estado do admin"""
+    if 'admin_attempts' not in st.session_state:
+        st.session_state.admin_attempts = 0
+    if 'admin_blocked_until' not in st.session_state:
+        st.session_state.admin_blocked_until = None
+    if 'admin_logado' not in st.session_state:
+        st.session_state.admin_logado = False
+    if 'admin_user' not in st.session_state:
+        st.session_state.admin_user = None
+
 def render():
+    # INICIALIZAR ESTADO PRIMEIRO (ANTES DE QUALQUER ACESSO)
+    inicializar_estado_admin()
+    
     st.markdown("""
     <style>
         .stTabs [data-baseweb="tab-list"] {
@@ -72,12 +80,15 @@ def render():
     st.markdown('<div class="tab-indicator">👆 Toque nas abas para navegar</div>', unsafe_allow_html=True)
     st.markdown("---")
     
+    # Inicializar outros estados da sessão
     if 'chave_atual' not in st.session_state:
         st.session_state.chave_atual = None
     if 'chave_expiracao' not in st.session_state:
         st.session_state.chave_expiracao = None
     if 'user_email' not in st.session_state:
         st.session_state.user_email = None
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
     
     if st.session_state.get('authenticated'):
         return
@@ -162,8 +173,8 @@ def render():
         st.markdown("### 🔒 Área Administrativa")
         st.markdown("Acesso restrito - apenas administradores autorizados.")
         
-        # Verificar se está bloqueado
-        if st.session_state.admin_blocked_until:
+        # Verificar se está bloqueado (com segurança)
+        if st.session_state.admin_blocked_until is not None:
             if time.time() < st.session_state.admin_blocked_until:
                 remaining = int(st.session_state.admin_blocked_until - time.time())
                 st.error(f"🔒 Muitas tentativas incorretas. Aguarde {remaining} segundos.")
@@ -186,6 +197,7 @@ def render():
                 if verificar_senha_admin(senha_admin):
                     # Login bem-sucedido - resetar contador
                     st.session_state.admin_attempts = 0
+                    st.session_state.admin_blocked_until = None
                     st.session_state.admin_logado = True
                     st.session_state.admin_user = "admin"
                     st.success("✅ Login realizado! Redirecionando...")
