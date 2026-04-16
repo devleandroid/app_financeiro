@@ -32,6 +32,14 @@ def inicializar_estado_admin():
         st.session_state.admin_logado = False
     if 'admin_user' not in st.session_state:
         st.session_state.admin_user = None
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
+    if 'chave_atual' not in st.session_state:
+        st.session_state.chave_atual = None
+    if 'chave_expiracao' not in st.session_state:
+        st.session_state.chave_expiracao = None
+    if 'user_email' not in st.session_state:
+        st.session_state.user_email = None
 
 def render():
     # INICIALIZAR ESTADO PRIMEIRO (ANTES DE QUALQUER ACESSO)
@@ -80,16 +88,6 @@ def render():
     st.markdown('<div class="tab-indicator">👆 Toque nas abas para navegar</div>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # Inicializar outros estados da sessão
-    if 'chave_atual' not in st.session_state:
-        st.session_state.chave_atual = None
-    if 'chave_expiracao' not in st.session_state:
-        st.session_state.chave_expiracao = None
-    if 'user_email' not in st.session_state:
-        st.session_state.user_email = None
-    if 'authenticated' not in st.session_state:
-        st.session_state.authenticated = False
-    
     if st.session_state.get('authenticated'):
         return
     
@@ -99,9 +97,7 @@ def render():
         "📧 Solicitar", "🔑 Acessar", "⚙️ Admin", "❓ Ajuda"
     ])
     
-    # ============================================
     # ABA 1: Solicitar Acesso
-    # ============================================
     with tab1:
         st.markdown("### ✉️ Solicitar chave")
         email_input = st.text_input("📧 Seu email", placeholder="seu@email.com", key="solicitar_email")
@@ -131,9 +127,7 @@ def render():
                 st.warning("⚠️ Digite um email válido")
         st.caption("💡 A chave chega em minutos e vale por 4 horas")
     
-    # ============================================
     # ABA 2: Acessar com chave
-    # ============================================
     with tab2:
         st.markdown("### 🔐 Entrar no sistema")
         chave_input = st.text_input("Chave de 8 dígitos", placeholder="Ex: ABCD1234", max_chars=8, key="chave_acesso")
@@ -166,9 +160,7 @@ def render():
                 st.warning("⚠️ Digite uma chave de 8 caracteres")
         st.caption("💡 A chave funciona por 4 horas e pode ser reutilizada")
     
-    # ============================================
-    # ABA 3: Administrador (COM PROTEÇÃO)
-    # ============================================
+    # ABA 3: Administrador
     with tab3:
         st.markdown("### 🔒 Área Administrativa")
         st.markdown("Acesso restrito - apenas administradores autorizados.")
@@ -179,15 +171,12 @@ def render():
                 remaining = int(st.session_state.admin_blocked_until - time.time())
                 st.error(f"🔒 Muitas tentativas incorretas. Aguarde {remaining} segundos.")
                 st.warning("⚠️ Tentativas repetidas serão registradas para segurança.")
-                return
             else:
-                # Resetar bloqueio
                 st.session_state.admin_blocked_until = None
                 st.session_state.admin_attempts = 0
         
         senha_admin = st.text_input("Senha de Administrador", type="password", placeholder="Digite a senha", key="admin_password")
         
-        # Mostrar tentativas restantes
         if st.session_state.admin_attempts > 0:
             remaining = 5 - st.session_state.admin_attempts
             st.warning(f"⚠️ Tentativas restantes: {remaining}")
@@ -195,7 +184,6 @@ def render():
         if st.button("🔓 Entrar no Painel Admin", use_container_width=True, type="primary"):
             if senha_admin:
                 if verificar_senha_admin(senha_admin):
-                    # Login bem-sucedido - resetar contador
                     st.session_state.admin_attempts = 0
                     st.session_state.admin_blocked_until = None
                     st.session_state.admin_logado = True
@@ -203,12 +191,9 @@ def render():
                     st.success("✅ Login realizado! Redirecionando...")
                     st.rerun()
                 else:
-                    # Login falhou - incrementar contador
                     st.session_state.admin_attempts += 1
-                    
-                    # Bloquear após 5 tentativas
                     if st.session_state.admin_attempts >= 5:
-                        st.session_state.admin_blocked_until = time.time() + 300  # 5 minutos
+                        st.session_state.admin_blocked_until = time.time() + 300
                         st.error("🔒 Número máximo de tentativas excedido. Aguarde 5 minutos.")
                         st.warning("⚠️ Esta tentativa foi registrada para fins de segurança.")
                     else:
@@ -216,7 +201,6 @@ def render():
             else:
                 st.warning("⚠️ Digite a senha")
         
-        # Aviso de segurança
         st.markdown("""
         <div class="security-notice">
         🔒 <strong>Segurança</strong><br>
@@ -226,9 +210,7 @@ def render():
         </div>
         """, unsafe_allow_html=True)
     
-    # ============================================
     # ABA 4: Ajuda
-    # ============================================
     with tab4:
         st.markdown("### ❓ Como usar o InvestSmart")
         
