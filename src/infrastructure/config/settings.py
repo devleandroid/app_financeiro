@@ -4,7 +4,6 @@ import logging
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Configurar logger básico
 logger = logging.getLogger(__name__)
 
 # Carregar variáveis de ambiente
@@ -34,38 +33,19 @@ class Settings:
         "https://*.koyeb.app"
     ]
     
-    # Adicionar origens extras via variável de ambiente (separadas por vírgula)
-    _extra_origins = os.getenv("CORS_EXTRA_ORIGINS", "")
-    if _extra_origins:
-        CORS_ORIGINS.extend([o.strip() for o in _extra_origins.split(",") if o.strip()])
-    
     # Admin
     ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-    # Lê ADMIN_PASSWORD primeiro (Koyeb), depois ADMIN_PASS (local)
-    admin_password_env = os.getenv("ADMIN_PASSWORD", "")
-    admin_pass_env = os.getenv("ADMIN_PASS", "")
-
-    # LOG CRÍTICO PARA DEBUG
-    logger.info("=" * 50)
-    logger.info("🔍 DEBUG DE CONFIGURAÇÃO DO ADMIN")
-    logger.info("=" * 50)
-    logger.info(f"ADMIN_PASSWORD from env: '{admin_password_env}'")
-    logger.info(f"ADMIN_PASS from env: '{admin_pass_env}'")
-    logger.info(f"ADMIN_USER from env: '{ADMIN_USER}'")
+    ADMIN_PASS = os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASS") 
     
-    # Definir a senha final
-    if admin_password_env:
-        ADMIN_PASS = admin_password_env
-        logger.info(f"✅ Usando ADMIN_PASSWORD: '{admin_password_env[:4]}***'")
-    elif admin_pass_env:
-        ADMIN_PASS = admin_pass_env
-        logger.info(f"✅ Usando ADMIN_PASS: '{admin_pass_env[:4]}***'")
+    # Database - Usar DATABASE_URL do Koyeb
+    DATABASE_URL = os.getenv("DATABASE_URL", "")
+    
+    # Se não tiver DATABASE_URL, usa SQLite local
+    if not DATABASE_URL:
+        DATABASE_URL = "sqlite:///acessos.db"
+        logger.info("📁 Usando SQLite local")
     else:
-        ADMIN_PASS = ""  # Sem fallback
-        logger.warning("⚠️ NENHUMA SENHA CONFIGURADA! Painel admin não acessível.")
-    
-    logger.info(f"ADMIN_PASS final: {'*' * len(ADMIN_PASS) if ADMIN_PASS else 'VAZIO'}")
-    logger.info("=" * 50)
+        logger.info(f"🐘 Usando PostgreSQL: {DATABASE_URL[:50]}...")
     
     # APIs externas
     FIXER_API_KEY = os.getenv("FIXER_API_KEY", "")
@@ -76,9 +56,6 @@ class Settings:
     EMAIL_SENHA = os.getenv("EMAIL_SENHA", "")
     SMTP_SERVIDOR = os.getenv("SMTP_SERVIDOR", "smtp.gmail.com")
     SMTP_PORTA = int(os.getenv("SMTP_PORTA", "587"))
-    
-    # Banco de dados
-    DATABASE_URL = os.getenv("DATABASE_URL", "acessos.db")
     
     @property
     def is_development(self):
