@@ -2,22 +2,23 @@
 
 let
   pythonEnv = pkgs.python313.withPackages (ps: with ps; [
-    # Data science
-    numpy
-    pandas
-    plotly
-    
     # Web framework
     fastapi
     uvicorn
     
     # Frontend
     streamlit
+    plotly
+    
+    # Data science
+    pandas
+    numpy
     
     # Utils
     requests
     python-dotenv
     pydantic
+    psycopg2      # <--- ADICIONADO para PostgreSQL
   ]);
 in
 pkgs.mkShell {
@@ -26,9 +27,10 @@ pkgs.mkShell {
     pkgs.stdenv.cc.cc.lib
     pkgs.which
     pkgs.bash
-    pkgs.psmisc  # para fuser
-    pkgs.curl    # para testes
-    pkgs.sqlite  # <--- CORRIGIDO: sqlite, não sqlite3
+    pkgs.psmisc
+    pkgs.curl
+    pkgs.sqlite
+    pkgs.postgresql  # <--- ADICIONADO cliente PostgreSQL
   ];
   
   shellHook = ''
@@ -40,16 +42,8 @@ pkgs.mkShell {
     echo "🚀 Ambiente InvestSmart (NixOS)"
     echo "==================================="
     echo "✅ Python: $(python --version)"
-    echo "✅ Pacotes Python instalados:"
-    echo "   - numpy, pandas, plotly"
-    echo "   - fastapi, uvicorn"
-    echo "   - streamlit, requests"
-    echo "✅ Pacotes sistema: sqlite, psmisc, curl"
+    echo "✅ Pacotes: fastapi, uvicorn, streamlit, plotly, pandas, psycopg2"
+    echo "✅ PostgreSQL: $(psql --version 2>/dev/null || echo 'cliente disponível')"
     echo "==================================="
-    
-    # Criar aliases úteis
-    alias run-backend='PYTHONPATH=. uvicorn src.presentation.api.main:app --reload --port 8000'
-    alias run-frontend='PYTHONPATH=. streamlit run src.presentation.web.app:app --server.port 8501'
-    alias run-admin='PYTHONPATH=. streamlit run src.presentation.web.pages.admin:app --server.port 8502'
   '';
 }
