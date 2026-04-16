@@ -1,0 +1,52 @@
+name: investsmart-backend
+region: fra
+
+services:
+  - name: backend
+    type: web
+    github:
+      branch: main
+      repository: devleandroid/app_financeiro
+    build:
+      buildpack: python
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - port: 8000
+        protocol: http
+    routes:
+      - path: /
+    env:
+      # Application
+      - name: ENVIRONMENT
+        value: production
+      - name: DEBUG
+        value: "false"
+      
+      # Admin credentials
+      - name: ADMIN_USER
+        value: admin
+      - name: ADMIN_PASSWORD
+        secret: admin_password
+      
+      # Database - USAR A URL DO SEU POSTGRESQL
+      - name: DATABASE_URL
+        value: database_url
+      
+      # API Keys
+      - name: FIXER_API_KEY
+        secret: fixer_api_key
+      
+      # URL da API
+      - name: API_URL
+        value: https://electric-ki-investone-9623b27e.koyeb.app
+      
+      # Email
+      - name: EMAIL_REMETENTE
+        secret: email_remetente
+      - name: EMAIL_SENHA
+        secret: email_senha
+      - name: SMTP_SERVIDOR
+        value: smtp.gmail.com
+      - name: SMTP_PORTA
+        value: "587"
