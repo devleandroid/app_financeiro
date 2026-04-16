@@ -6,6 +6,7 @@ python-dotenv
 
 # Database
 # sqlite3
+psycopg2-binary
 
 # Frontend
 streamlit
