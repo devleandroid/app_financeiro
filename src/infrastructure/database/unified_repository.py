@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# Em desenvolvimento, sempre usar SQLite (a menos que explicitamente configurado)
+# Em desenvolvimento, sempre usar SQLite
 if ENVIRONMENT == "development" and not DATABASE_URL:
     USE_POSTGRES = False
     logger.info("📁 Ambiente de desenvolvimento: usando SQLite")
@@ -22,14 +22,14 @@ if USE_POSTGRES:
     try:
         import psycopg2
         from psycopg2.extras import RealDictCursor
-        PSYCOPG2_AVAILABLE = True
         logger.info("🐘 Conectando ao PostgreSQL em produção...")
+        PSYCOPG2_OK = True
     except ImportError:
-        PSYCOPG2_AVAILABLE = False
+        PSYCOPG2_OK = False
         USE_POSTGRES = False
         logger.warning("⚠️ psycopg2 não disponível, usando SQLite")
 
-if USE_POSTGRES and PSYCOPG2_AVAILABLE:
+if USE_POSTGRES and PSYCOPG2_OK:
     # Usar PostgreSQL (produção)
     class UnifiedAdminRepository:
         def __init__(self):
