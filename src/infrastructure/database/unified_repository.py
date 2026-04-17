@@ -24,10 +24,10 @@ if USE_POSTGRES:
         from psycopg2.extras import RealDictCursor
         logger.info("🐘 Conectando ao PostgreSQL em produção...")
         PSYCOPG2_OK = True
-    except ImportError:
+    except ImportError as e:
         PSYCOPG2_OK = False
         USE_POSTGRES = False
-        logger.warning("⚠️ psycopg2 não disponível, usando SQLite")
+        logger.warning(f"⚠️ psycopg2 não disponível: {e}")
 
 if USE_POSTGRES and PSYCOPG2_OK:
     # Usar PostgreSQL (produção)
@@ -44,32 +44,57 @@ if USE_POSTGRES and PSYCOPG2_OK:
             conn = self._get_connection()
             try:
                 with conn.cursor() as cur:
-                    cur.execute('''
-                        CREATE TABLE IF NOT EXISTS access_keys (
-                            id SERIAL PRIMARY KEY,
-                            email TEXT NOT NULL,
-                            key TEXT UNIQUE NOT NULL,
-                            created_at TIMESTAMP NOT NULL,
-                            expires_at TIMESTAMP NOT NULL,
-                            used INTEGER DEFAULT 0,
-                            ip TEXT,
-                            user_agent TEXT
+                    # Verificar se a tabela access_keys existe
+                    cur.execute("""
+                        SELECT EXISTS (
+                            SELECT FROM information_schema.tables 
+                            WHERE table_name = 'access_keys'
                         )
-                    ''')
+                    """)
+                    table_exists = cur.fetchone()[0]
                     
-                    cur.execute('''
-                        CREATE TABLE IF NOT EXISTS acessos (
-                            id SERIAL PRIMARY KEY,
-                            email TEXT NOT NULL,
-                            chave_utilizada TEXT,
-                            data_acesso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            ip TEXT,
-                            user_agent TEXT
-                        )
-                    ''')
-                    
-                    conn.commit()
-                    logger.info("✅ Tabelas PostgreSQL criadas/verificadas")
+                    if not table_exists:
+                        logger.info("📦 Criando tabelas no PostgreSQL...")
+                        
+                        # Tabela de chaves de acesso
+                        cur.execute('''
+                            CREATE TABLE access_keys (
+                                id SERIAL PRIMARY KEY,
+                                email TEXT NOT NULL,
+                                key TEXT UNIQUE NOT NULL,
+                                created_at TIMESTAMP NOT NULL,
+                                expires_at TIMESTAMP NOT NULL,
+                                used INTEGER DEFAULT 0,
+                                ip TEXT,
+                                user_agent TEXT
+                            )
+                        ''')
+                        logger.info("✅ Tabela 'access_keys' criada")
+                        
+                        # Tabela de acessos
+                        cur.execute('''
+                            CREATE TABLE acessos (
+                                id SERIAL PRIMARY KEY,
+                                email TEXT NOT NULL,
+                                chave_utilizada TEXT,
+                                data_acesso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                ip TEXT,
+                                user_agent TEXT
+                            )
+                        ''')
+                        logger.info("✅ Tabela 'acessos' criada")
+                        
+                        # Índices
+                        cur.execute('CREATE INDEX idx_access_keys_email ON access_keys(email)')
+                        cur.execute('CREATE INDEX idx_access_keys_key ON access_keys(key)')
+                        cur.execute('CREATE INDEX idx_acessos_email ON acessos(email)')
+                        logger.info("✅ Índices criados")
+                        
+                        conn.commit()
+                        logger.info("🎉 Tabelas PostgreSQL criadas com sucesso!")
+                    else:
+                        logger.info("✅ Tabelas PostgreSQL já existem")
+                        
             except Exception as e:
                 logger.error(f"❌ Erro ao criar tabelas: {e}")
                 raise
@@ -128,13 +153,16 @@ if USE_POSTGRES and PSYCOPG2_OK:
                     cur.execute('SELECT COUNT(DISTINCT email) FROM access_keys')
                     emails_unicos = cur.fetchone()[0]
                     
+                    # Calcular taxa de conversão
+                    taxa_conversao = round((total_acessos / total_solicitacoes) * 100, 2) if total_solicitacoes > 0 else 0
+                    
                     return {
                         "total_solicitacoes": total_solicitacoes,
                         "solicitacoes_hoje": 0,
                         "total_acessos": total_acessos,
                         "acessos_hoje": 0,
                         "emails_unicos": emails_unicos,
-                        "taxa_conversao": 0,
+                        "taxa_conversao": taxa_conversao,
                         "solicitacoes_por_dia": []
                     }
             finally:
