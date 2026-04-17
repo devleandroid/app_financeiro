@@ -55,4 +55,7 @@ ssh-key-*.key.pub
 *.swo
 
 # Arquivo de SH teste local
-test_injection.sh
+scripts/test_injection.sh
+scripts/create_tables.py
+*_temp.py
+*_test.py
