@@ -1,17 +1,26 @@
-"""Ponto de entrada da API FastAPI"""
+"""Ponto de entrada da API FastAPI - SitesPro + InvestSmart"""
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import logging
 
 from src.infrastructure.config.settings import settings
 from src.infrastructure.config.logging import setup_logging
 
-# Importar routers
+# Importar routers existentes
 from src.presentation.api.routers import public
 from src.presentation.api.routers import admin
 from src.presentation.api.routers import investment
 from src.presentation.api.routers import debug
 from src.presentation.api.routers import health
+
+# Importar novos routers da plataforma de sites
+from src.presentation.api.routers import auth
+from src.presentation.api.routers import sites
+from src.presentation.api.routers import subscriptions
+from src.presentation.api.routers import templates
+from src.presentation.api.routers import web_pages
 
 # Configurar logging
 setup_logging()
@@ -21,62 +30,69 @@ logger = logging.getLogger(__name__)
 # CRIAR APP FASTAPI
 # ============================================
 app = FastAPI(
-    title=settings.APP_NAME,
-    description="API para análise de investimentos",
+    title="SitesPro",
+    description="Plataforma de criacao de sites profissionais + API de investimentos",
     version=settings.VERSION,
     debug=settings.DEBUG
 )
+
+# ============================================
+# ARQUIVOS ESTATICOS
+# ============================================
+static_dir = Path(__file__).parent.parent / "web" / "static"
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # ============================================
 # ADICIONAR MIDDLEWARES
 # ============================================
 
 # Middleware de CORS
+cors_origins = settings.CORS_ORIGINS + [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Middleware de Rate Limiting (opcional - comentado se der problema)
-# try:
-#     from src.presentation.api.middlewares.rate_limit import RateLimitMiddleware
-#     app.add_middleware(RateLimitMiddleware, max_attempts=5, window_seconds=300)
-#     logger.info("✅ Rate limiting middleware carregado")
-# except ImportError as e:
-#     logger.warning(f"⚠️ Rate limiting middleware não disponível: {e}")
-
 # ============================================
-# INCLUIR ROUTERS
+# INCLUIR ROUTERS - API
 # ============================================
+# Routers existentes
 app.include_router(health.router, prefix="/api")
 app.include_router(public.router, prefix="/api")
 app.include_router(investment.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(debug.router, prefix="/api")
 
-# ============================================
-# ENDPOINTS BÁSICOS
-# ============================================
-@app.get("/")
-async def root():
-    """Rota raiz"""
-    return {
-        "app": settings.APP_NAME,
-        "version": settings.VERSION,
-        "status": "online",
-        "environment": settings.ENVIRONMENT
-    }
+# Novos routers - Plataforma de Sites
+app.include_router(auth.router, prefix="/api")
+app.include_router(sites.router, prefix="/api")
+app.include_router(subscriptions.router, prefix="/api")
+app.include_router(templates.router, prefix="/api")
 
+# ============================================
+# INCLUIR ROUTERS - PAGINAS WEB
+# ============================================
+app.include_router(web_pages.router)
+
+# ============================================
+# ENDPOINTS BASICOS
+# ============================================
 @app.get("/api")
 async def api_root():
     """Rota raiz da API"""
     return {
-        "mensagem": "Bem-vindo à API do InvestSmart",
+        "app": "SitesPro",
+        "mensagem": "Bem-vindo a API SitesPro",
         "documentacao": "/docs",
-        "versao": settings.VERSION
+        "versao": settings.VERSION,
+        "modulos": ["sites", "investimentos", "admin"]
     }
 
 # ============================================
@@ -84,11 +100,18 @@ async def api_root():
 # ============================================
 @app.on_event("startup")
 async def startup_event():
-    logger.info("🚀 API iniciada com sucesso!")
-    logger.info(f"🌍 Ambiente: {settings.ENVIRONMENT}")
-    logger.info(f"👤 Admin User: {settings.ADMIN_USER}")
-    logger.info(f"🔧 Debug: {settings.DEBUG}")
+    # Criar tabelas do banco de dados se nao existirem
+    from src.infrastructure.database.migrations.criar_tabelas_sites import criar_tabelas
+    try:
+        criar_tabelas()
+        logger.info("Banco de dados da plataforma de sites inicializado")
+    except Exception as e:
+        logger.error(f"Erro ao inicializar banco: {e}")
+
+    logger.info("API SitesPro iniciada com sucesso!")
+    logger.info(f"Ambiente: {settings.ENVIRONMENT}")
+    logger.info(f"Debug: {settings.DEBUG}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    logger.info("👋 API encerrada")
+    logger.info("API SitesPro encerrada")

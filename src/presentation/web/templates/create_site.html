@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Site - SitesPro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">Sites<span>Pro</span></a>
+        <nav>
+            <a href="/dashboard">Meus Sites</a>
+            <a href="/plans">Planos</a>
+            <div id="nav-auth"></div>
+        </nav>
+    </header>
+
+    <main class="dashboard" style="padding-bottom:4rem;">
+        <div class="container" style="padding-top:2rem;">
+            <a href="/dashboard" style="color:var(--text-muted); font-size:0.9rem;">&larr; Voltar ao Dashboard</a>
+            <h1 style="margin-top:1rem; margin-bottom:0.5rem;">Criar Novo Site</h1>
+            <p style="color:var(--text-muted); margin-bottom:2rem;">Preencha os dados do negocio e escolha um template</p>
+        </div>
+
+        <div class="form-container">
+            <div id="create-error" class="alert alert-danger" style="display:none;"></div>
+
+            <form id="create-form">
+                <!-- Template Selection -->
+                <h3 style="margin-bottom:1rem;">1. Escolha o Template</h3>
+                <div class="template-grid" id="template-grid">
+                    <div class="template-option selected" data-template="restaurante" onclick="selectTemplate('restaurante')">
+                        <div class="emoji">&#127860;</div>
+                        <div class="name">Restaurante</div>
+                        <div class="desc">Gastronomia & Bares</div>
+                    </div>
+                    <div class="template-option" data-template="loja" onclick="selectTemplate('loja')">
+                        <div class="emoji">&#128717;</div>
+                        <div class="name">Loja</div>
+                        <div class="desc">Comercio & Produtos</div>
+                    </div>
+                    <div class="template-option" data-template="portfolio" onclick="selectTemplate('portfolio')">
+                        <div class="emoji">&#128188;</div>
+                        <div class="name">Portfolio</div>
+                        <div class="desc">Servicos & Freelancer</div>
+                    </div>
+                    <div class="template-option" data-template="saude" onclick="selectTemplate('saude')">
+                        <div class="emoji">&#129657;</div>
+                        <div class="name">Saude</div>
+                        <div class="desc">Clinicas & Consultorios</div>
+                    </div>
+                </div>
+
+                <!-- Business Info -->
+                <h3 style="margin-bottom:1rem; margin-top:2rem;">2. Dados do Negocio</h3>
+
+                <div class="form-group">
+                    <label for="nome_negocio">Nome do Negocio *</label>
+                    <input type="text" id="nome_negocio" placeholder="Ex: Restaurante Sabor Mineiro" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao">Descricao</label>
+                    <textarea id="descricao" placeholder="Descreva o negocio em poucas palavras..."></textarea>
+                    <div class="hint">Uma descricao atraente para os visitantes do site</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="segmento">Segmento</label>
+                    <input type="text" id="segmento" placeholder="Ex: Restaurante, Loja de Roupas, Dentista...">
+                </div>
+
+                <!-- Contact Info -->
+                <h3 style="margin-bottom:1rem; margin-top:2rem;">3. Informacoes de Contato</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" placeholder="(11) 3333-4444">
+                    </div>
+                    <div class="form-group">
+                        <label for="whatsapp">WhatsApp</label>
+                        <input type="tel" id="whatsapp" placeholder="(11) 99999-8888">
+                        <div class="hint">Aparecera o botao flutuante do WhatsApp</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email_contato">Email de Contato</label>
+                    <input type="email" id="email_contato" placeholder="contato@negocio.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="endereco">Endereco</label>
+                    <input type="text" id="endereco" placeholder="Rua, numero - Bairro, Cidade - UF">
+                </div>
+
+                <!-- Visual -->
+                <h3 style="margin-bottom:1rem; margin-top:2rem;">4. Personalizacao Visual</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cor Primaria</label>
+                        <div class="color-picker-group">
+                            <input type="color" id="cor_primaria" value="#2563eb">
+                            <span id="cor_primaria_label" style="color:var(--text-muted);font-size:0.9rem;">#2563eb</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Cor Secundaria</label>
+                        <div class="color-picker-group">
+                            <input type="color" id="cor_secundaria" value="#1e1e2e">
+                            <span id="cor_secundaria_label" style="color:var(--text-muted);font-size:0.9rem;">#1e1e2e</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="create-btn" style="margin-top:2rem;">
+                    Criar Site &rarr;
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <h2></h2>
+            <div class="modal-body"></div>
+            <div class="modal-actions"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        let selectedTemplate = 'restaurante';
+
+        function selectTemplate(templateId) {
+            selectedTemplate = templateId;
+            document.querySelectorAll('.template-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.template === templateId);
+            });
+        }
+
+        // Color picker labels
+        document.getElementById('cor_primaria').addEventListener('input', (e) => {
+            document.getElementById('cor_primaria_label').textContent = e.target.value;
+        });
+        document.getElementById('cor_secundaria').addEventListener('input', (e) => {
+            document.getElementById('cor_secundaria_label').textContent = e.target.value;
+        });
+
+        // Check limit on page load
+        (async () => {
+            try {
+                const check = await checkSiteLimit();
+                if (!check.pode_criar && check.precisa_assinar) {
+                    const errorDiv = document.getElementById('create-error');
+                    errorDiv.innerHTML = check.motivo + ' <a href="/plans" class="btn btn-primary" style="margin-left:1rem;padding:6px 16px;font-size:0.85rem;">Ver Planos</a>';
+                    errorDiv.style.display = 'flex';
+                    document.getElementById('create-btn').disabled = true;
+                    document.getElementById('create-btn').textContent = 'Limite atingido';
+                    document.getElementById('create-btn').classList.remove('btn-primary');
+                    document.getElementById('create-btn').classList.add('btn-outline');
+                }
+            } catch (e) {}
+        })();
+
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('create-btn');
+            const errorDiv = document.getElementById('create-error');
+            errorDiv.style.display = 'none';
+
+            btn.textContent = 'Criando site...';
+            btn.disabled = true;
+
+            try {
+                const siteData = {
+                    nome_negocio: document.getElementById('nome_negocio').value,
+                    descricao: document.getElementById('descricao').value,
+                    segmento: document.getElementById('segmento').value,
+                    telefone: document.getElementById('telefone').value,
+                    whatsapp: document.getElementById('whatsapp').value,
+                    email_contato: document.getElementById('email_contato').value,
+                    endereco: document.getElementById('endereco').value,
+                    template_id: selectedTemplate,
+                    cor_primaria: document.getElementById('cor_primaria').value,
+                    cor_secundaria: document.getElementById('cor_secundaria').value,
+                    cor_texto: '#ffffff'
+                };
+
+                const result = await createSite(siteData);
+
+                if (result.aviso) {
+                    showAlert(result.aviso, 'warning');
+                }
+
+                // Open preview in new tab
+                window.open(result.preview_url, '_blank');
+
+                showAlert('Site criado com sucesso!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'flex';
+                btn.textContent = 'Criar Site \u2192';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
