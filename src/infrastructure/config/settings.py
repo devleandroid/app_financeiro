@@ -56,7 +56,29 @@ class Settings:
     EMAIL_SENHA = os.getenv("EMAIL_SENHA", "")
     SMTP_SERVIDOR = os.getenv("SMTP_SERVIDOR", "smtp.gmail.com")
     SMTP_PORTA = int(os.getenv("SMTP_PORTA", "587"))
-    
+
+    # JWT
+    JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-key-change-in-production")
+    JWT_ALGORITHM = "HS256"
+    JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+
+    # Plataforma de Sites - Regras de Negocio
+    FREE_SITES_LIMIT = 2
+    PRO_SITES_LIMIT = 10
+    EXTRA_SITE_PRICE = 399.90
+    MAX_SITES_PER_USER = 30
+    PRO_PLAN_PRICE = 69.90
+
+    # Pagamento
+    PAYMENT_GATEWAY = os.getenv("PAYMENT_GATEWAY", "mercadopago")
+    MERCADOPAGO_ACCESS_TOKEN = os.getenv("MERCADOPAGO_ACCESS_TOKEN", "")
+    STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+    STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+
+    # Paths
+    GENERATED_SITES_DIR = str(Path(__file__).parent.parent.parent.parent / "generated_sites")
+    TEMPLATES_DIR = str(Path(__file__).parent.parent.parent / "presentation" / "web" / "templates")
+
     @property
     def is_development(self):
         return self.ENVIRONMENT == "development"

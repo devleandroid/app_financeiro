@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - SitesPro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">Sites<span>Pro</span></a>
+        <nav><div id="nav-auth"></div></nav>
+    </header>
+
+    <section class="hero" style="min-height:100vh;">
+        <div class="form-container" style="max-width:420px; background:var(--bg-card); border-radius:var(--radius-lg); padding:2.5rem; border:1px solid rgba(255,255,255,0.05);">
+            <h2 style="text-align:center; margin-bottom:0.5rem;">Bem-vindo de volta</h2>
+            <p style="text-align:center; color:var(--text-muted); margin-bottom:2rem;">Entre na sua conta SitesPro</p>
+
+            <div id="login-error" class="alert alert-danger" style="display:none;"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Sua senha" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-btn">Entrar</button>
+            </form>
+
+            <p style="text-align:center; margin-top:1.5rem; color:var(--text-muted); font-size:0.9rem;">
+                Nao tem conta? <a href="/register">Criar conta gratis</a>
+            </p>
+        </div>
+    </section>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (isLoggedIn()) {
+            window.location.href = '/dashboard';
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.style.display = 'none';
+
+            btn.textContent = 'Entrando...';
+            btn.disabled = true;
+
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                await login(email, password);
+                window.location.href = '/dashboard';
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'flex';
+                btn.textContent = 'Entrar';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

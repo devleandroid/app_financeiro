@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos - SitesPro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">Sites<span>Pro</span></a>
+        <nav>
+            <a href="/dashboard">Meus Sites</a>
+            <a href="/plans">Planos</a>
+            <div id="nav-auth"></div>
+        </nav>
+    </header>
+
+    <main class="dashboard" style="padding-bottom:4rem;">
+        <div class="section" style="padding-top:2rem;">
+            <div class="section-title">
+                <h2>Planos <span>e Precos</span></h2>
+                <p id="current-plan-info" style="margin-bottom:1rem;">Carregando...</p>
+            </div>
+
+            <div id="plan-alert" style="display:none; max-width:600px; margin:0 auto 2rem;"></div>
+
+            <div class="pricing-grid">
+                <!-- Free -->
+                <div class="pricing-card" id="card-free">
+                    <div class="plan-name">Gratuito</div>
+                    <div class="price">R$ 0 <span></span></div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">sem cartao de credito</p>
+                    <ul class="features-list">
+                        <li>Ate 2 sites gratuitos</li>
+                        <li>Templates profissionais</li>
+                        <li>Preview do site</li>
+                        <li>Busca de prospeccao ilimitada</li>
+                        <li>Suporte por email</li>
+                        <li class="disabled">Publicacao de sites</li>
+                        <li class="disabled">Dominio personalizado</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" id="btn-free" disabled>Plano Atual</button>
+                </div>
+
+                <!-- Pro -->
+                <div class="pricing-card featured" id="card-pro">
+                    <div class="badge">&#11088; Popular</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="price">R$69,90 <span>/ mes</span></div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">cobrado mensalmente</p>
+                    <ul class="features-list">
+                        <li>Ate 10 sites (inclui os 2 gratis)</li>
+                        <li>Templates profissionais</li>
+                        <li>Publicacao de sites</li>
+                        <li>Dominio personalizado</li>
+                        <li>Edicao avancada</li>
+                        <li>Busca de prospeccao ilimitada</li>
+                        <li>Sem marca d'agua</li>
+                        <li>Suporte prioritario</li>
+                    </ul>
+                    <button class="btn btn-primary btn-full" id="btn-pro" onclick="assinarPro()">Assinar Agora</button>
+                    <p style="text-align:center;margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted);">Cancele a qualquer momento</p>
+                </div>
+
+                <!-- Extra -->
+                <div class="pricing-card" id="card-extra">
+                    <div class="plan-name">Site Extra</div>
+                    <div class="price">R$399,90 <span>/ site</span></div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">pagamento unico</p>
+                    <ul class="features-list">
+                        <li>1 site adicional alem do plano</li>
+                        <li>Todas as funcionalidades Pro</li>
+                        <li>Maximo de 30 sites por conta</li>
+                        <li>Publicacao inclusa</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" id="btn-extra" disabled>Requer Plano Pro</button>
+                </div>
+            </div>
+
+            <!-- Cancel section -->
+            <div id="cancel-section" style="display:none; text-align:center; margin-top:3rem;">
+                <p style="color:var(--text-muted); margin-bottom:1rem;">Deseja cancelar sua assinatura?</p>
+                <button class="btn btn-outline" onclick="cancelarPlano()" style="border-color:var(--danger);color:var(--danger);">Cancelar Assinatura</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <h2></h2>
+            <div class="modal-body"></div>
+            <div class="modal-actions"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) window.location.href = '/login';
+
+        async function loadPlanInfo() {
+            try {
+                const status = await getSubscriptionStatus();
+                const infoEl = document.getElementById('current-plan-info');
+
+                if (status.plano === 'pro') {
+                    infoEl.textContent = `Seu plano atual: Pro - ${status.sites_criados}/${status.limite_sites} sites`;
+                    document.getElementById('btn-free').textContent = 'Plano Anterior';
+                    document.getElementById('btn-free').disabled = true;
+                    document.getElementById('btn-pro').textContent = 'Plano Atual';
+                    document.getElementById('btn-pro').disabled = true;
+                    document.getElementById('btn-pro').classList.remove('btn-primary');
+                    document.getElementById('btn-pro').classList.add('btn-success');
+                    document.getElementById('btn-extra').disabled = false;
+                    document.getElementById('btn-extra').textContent = 'Comprar Site Extra';
+                    document.getElementById('btn-extra').classList.remove('btn-outline');
+                    document.getElementById('btn-extra').classList.add('btn-primary');
+                    document.getElementById('cancel-section').style.display = 'block';
+                } else {
+                    infoEl.textContent = `Seu plano atual: Gratuito - ${status.sites_criados}/${status.limite_sites} sites`;
+                    document.getElementById('btn-free').textContent = 'Plano Atual';
+                }
+            } catch (error) {
+                if (error.message.includes('Token')) {
+                    clearToken();
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        async function assinarPro() {
+            showModal('Assinar Plano Pro',
+                `<p>Voce esta prestes a assinar o plano Pro por <strong>R$69,90/mes</strong>.</p>
+                <br>
+                <p>Com o plano Pro voce podera:</p>
+                <ul style="margin:1rem 0; padding-left:1.5rem; color:var(--text-muted);">
+                    <li>Criar ate 10 sites</li>
+                    <li>Publicar sites com URL unica</li>
+                    <li>Dominio personalizado</li>
+                    <li>Suporte prioritario</li>
+                </ul>
+                <p style="color:var(--text-muted); font-size:0.85rem;">* No MVP, o plano e ativado instantaneamente. Em producao, sera integrado com gateway de pagamento.</p>`,
+                [
+                    { text: 'Confirmar Assinatura', class: 'btn-primary', onClick: async () => {
+                        try {
+                            const result = await checkout('pro');
+                            showAlert(result.message, 'success');
+                            loadPlanInfo();
+                        } catch (error) {
+                            showAlert(error.message, 'danger');
+                        }
+                    }},
+                    { text: 'Cancelar', class: 'btn-outline', onClick: () => {} }
+                ]
+            );
+        }
+
+        async function cancelarPlano() {
+            showModal('Cancelar Assinatura',
+                '<p>Tem certeza que deseja cancelar sua assinatura Pro?</p><p style="color:var(--text-muted); margin-top:0.5rem;">Voce nao podera publicar novos sites, mas os sites ja publicados continuarao ativos.</p>',
+                [
+                    { text: 'Sim, Cancelar', class: 'btn-danger', onClick: async () => {
+                        try {
+                            const result = await cancelSubscription();
+                            showAlert(result.message, 'success');
+                            loadPlanInfo();
+                        } catch (error) {
+                            showAlert(error.message, 'danger');
+                        }
+                    }},
+                    { text: 'Manter Plano', class: 'btn-primary', onClick: () => {} }
+                ]
+            );
+        }
+
+        loadPlanInfo();
+    </script>
+</body>
+</html>

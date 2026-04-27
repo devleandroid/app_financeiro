@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SitesPro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">Sites<span>Pro</span></a>
+        <nav>
+            <a href="/dashboard">Meus Sites</a>
+            <a href="/plans">Planos</a>
+            <div id="nav-auth"></div>
+        </nav>
+    </header>
+
+    <main class="dashboard">
+        <div class="dashboard-header container">
+            <div>
+                <h1>Meus Sites</h1>
+                <p style="color:var(--text-muted);" id="plan-info">Carregando...</p>
+            </div>
+            <a href="/create-site" class="btn btn-primary btn-lg" id="create-btn">+ Criar Novo Site</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid container" id="stats-grid">
+            <div class="stat-card">
+                <div class="label">Sites Criados</div>
+                <div class="value highlight" id="stat-sites">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Plano Atual</div>
+                <div class="value" id="stat-plano">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Sites Restantes</div>
+                <div class="value" id="stat-restantes">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Sites Publicados</div>
+                <div class="value" id="stat-publicados">-</div>
+            </div>
+        </div>
+
+        <!-- Limit Warning -->
+        <div class="container" id="limit-warning" style="display:none; padding:0 2rem;">
+            <div class="alert alert-warning" id="limit-message"></div>
+        </div>
+
+        <!-- Sites Grid -->
+        <div class="sites-grid container" id="sites-grid">
+            <div class="create-card" onclick="window.location.href='/create-site'">
+                <div class="content">
+                    <div class="plus">+</div>
+                    <p>Criar Novo Site</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <h2></h2>
+            <div class="modal-body"></div>
+            <div class="modal-actions"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        if (!isLoggedIn()) {
+            window.location.href = '/login';
+        }
+
+        const TEMPLATE_EMOJIS = {
+            'restaurante': '&#127860;',
+            'loja': '&#128717;',
+            'portfolio': '&#128188;',
+            'saude': '&#129657;'
+        };
+
+        async function loadDashboard() {
+            try {
+                const [sitesData, statusData, userData] = await Promise.all([
+                    listSites(),
+                    getSubscriptionStatus(),
+                    fetchCurrentUser()
+                ]);
+
+                // Update stats
+                document.getElementById('stat-sites').textContent = sitesData.total;
+                document.getElementById('stat-plano').textContent =
+                    statusData.plano === 'pro' ? 'Pro' : 'Gratuito';
+                document.getElementById('stat-restantes').textContent =
+                    statusData.sites_restantes_no_plano;
+
+                const publicados = sitesData.sites.filter(s => s.status === 'publicado').length;
+                document.getElementById('stat-publicados').textContent = publicados;
+
+                // Plan info
+                const planInfo = document.getElementById('plan-info');
+                if (statusData.plano === 'free') {
+                    planInfo.textContent = `Plano Gratuito - ${sitesData.total}/${statusData.limite_sites} sites usados`;
+                } else {
+                    planInfo.textContent = `Plano Pro - ${sitesData.total}/${statusData.limite_sites} sites (max ${statusData.maximo_absoluto})`;
+                }
+
+                // Check limit
+                const check = await checkSiteLimit();
+                if (!check.pode_criar) {
+                    document.getElementById('limit-warning').style.display = 'block';
+                    document.getElementById('limit-message').innerHTML = check.motivo +
+                        (check.precisa_assinar ? ' <a href="/plans" class="btn btn-primary" style="margin-left:1rem;padding:6px 16px;font-size:0.85rem;">Ver Planos</a>' : '');
+                }
+
+                // Render sites
+                renderSites(sitesData.sites);
+            } catch (error) {
+                if (error.message.includes('Token') || error.message.includes('autenticacao')) {
+                    clearToken();
+                    window.location.href = '/login';
+                    return;
+                }
+                showAlert('Erro ao carregar dashboard: ' + error.message, 'danger');
+            }
+        }
+
+        function renderSites(sites) {
+            const grid = document.getElementById('sites-grid');
+            let html = `
+                <div class="create-card" onclick="window.location.href='/create-site'">
+                    <div class="content">
+                        <div class="plus">+</div>
+                        <p>Criar Novo Site</p>
+                    </div>
+                </div>
+            `;
+
+            sites.forEach(site => {
+                const emoji = TEMPLATE_EMOJIS[site.template_id] || '&#127760;';
+                const statusClass = site.status === 'publicado' ? 'publicado' : 'rascunho';
+                const statusText = site.status === 'publicado' ? 'Publicado' : 'Rascunho';
+
+                html += `
+                    <div class="site-card">
+                        <div class="preview" style="background: linear-gradient(135deg, ${site.cor_primaria}, ${site.cor_secundaria});">
+                            <span>${emoji}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="info">
+                            <h3>${site.nome_negocio}</h3>
+                            <div class="template-tag">${site.template_id} &bull; ${site.slug}</div>
+                        </div>
+                        <div class="actions">
+                            <a href="/api/sites/${site.id}/preview" target="_blank" class="btn btn-outline">Preview</a>
+                            ${site.status !== 'publicado' ?
+                                `<button class="btn btn-primary" onclick="doPublish(${site.id})">Publicar</button>` :
+                                `<a href="/site/${site.slug}" target="_blank" class="btn btn-success">Ver Site</a>`
+                            }
+                            <button class="btn btn-danger" onclick="doDelete(${site.id})" style="flex:0;padding:8px 12px;">&#128465;</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        async function doPublish(siteId) {
+            try {
+                const result = await publishSite(siteId);
+                showAlert(result.message, 'success');
+                loadDashboard();
+            } catch (error) {
+                if (error.message.includes('Pro')) {
+                    showModal('Plano Pro Necessario',
+                        '<p>Para publicar sites, voce precisa assinar o plano Pro por R$69,90/mes.</p>',
+                        [
+                            { text: 'Ver Planos', class: 'btn-primary', onClick: () => window.location.href = '/plans' },
+                            { text: 'Cancelar', class: 'btn-outline', onClick: () => {} }
+                        ]
+                    );
+                } else {
+                    showAlert(error.message, 'danger');
+                }
+            }
+        }
+
+        async function doDelete(siteId) {
+            showModal('Deletar Site',
+                '<p>Tem certeza que deseja deletar este site? Esta acao nao pode ser desfeita.</p>',
+                [
+                    { text: 'Deletar', class: 'btn-danger', onClick: async () => {
+                        try {
+                            await deleteSite(siteId);
+                            showAlert('Site deletado com sucesso', 'success');
+                            loadDashboard();
+                        } catch (error) {
+                            showAlert(error.message, 'danger');
+                        }
+                    }},
+                    { text: 'Cancelar', class: 'btn-outline', onClick: () => {} }
+                ]
+            );
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

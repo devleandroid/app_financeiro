@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta - SitesPro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">Sites<span>Pro</span></a>
+        <nav><div id="nav-auth"></div></nav>
+    </header>
+
+    <section class="hero" style="min-height:100vh;">
+        <div class="form-container" style="max-width:420px; background:var(--bg-card); border-radius:var(--radius-lg); padding:2.5rem; border:1px solid rgba(255,255,255,0.05);">
+            <h2 style="text-align:center; margin-bottom:0.5rem;">Criar Conta</h2>
+            <p style="text-align:center; color:var(--text-muted); margin-bottom:2rem;">Comece a criar sites profissionais gratis</p>
+
+            <div id="register-error" class="alert alert-danger" style="display:none;"></div>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="nome">Nome completo</label>
+                    <input type="text" id="nome" placeholder="Seu nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone (opcional)</label>
+                    <input type="tel" id="telefone" placeholder="(11) 99999-9999">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Minimo 6 caracteres" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label for="password2">Confirmar Senha</label>
+                    <input type="password" id="password2" placeholder="Repita a senha" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="register-btn">Criar Conta Gratis</button>
+            </form>
+
+            <p style="text-align:center; margin-top:1.5rem; color:var(--text-muted); font-size:0.9rem;">
+                Ja tem conta? <a href="/login">Fazer login</a>
+            </p>
+        </div>
+    </section>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        if (isLoggedIn()) {
+            window.location.href = '/dashboard';
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('register-btn');
+            const errorDiv = document.getElementById('register-error');
+            errorDiv.style.display = 'none';
+
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+
+            if (password !== password2) {
+                errorDiv.textContent = 'As senhas nao conferem';
+                errorDiv.style.display = 'flex';
+                return;
+            }
+
+            btn.textContent = 'Criando conta...';
+            btn.disabled = true;
+
+            try {
+                const email = document.getElementById('email').value;
+                const nome = document.getElementById('nome').value;
+                const telefone = document.getElementById('telefone').value;
+                await register(email, password, nome, telefone);
+                window.location.href = '/dashboard';
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'flex';
+                btn.textContent = 'Criar Conta Gratis';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
